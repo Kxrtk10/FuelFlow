@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FuelFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="44" height="44" rx="10" fill="url(#logoBgGrad)"/>
+          <path d="M0 44 L0 26 C2.5 21 4.5 17 7 14 C9.5 20 11.5 24 14 28 C16 20 18.5 15 21.5 10 C24 16 25.5 22 28 28 C30 21 32.5 16 36 13 C38 19 40.5 23 44 27 L44 44 Z" fill="url(#logoFlameGrad)"/>
+          <path d="M13.5 3 L15.25 7 L15.25 24 L11.75 24 L11.75 7 Z" fill="#FFFFFF"/>
+          <path d="M22 3 L23.75 7 L23.75 26.5 L20.25 26.5 L20.25 7 Z" fill="#FFFFFF"/>
+          <path d="M30.5 3 L32.25 7 L32.25 24 L28.75 24 L28.75 7 Z" fill="#FFFFFF"/>
+          <path d="M11.75 21 C15 24.5 18 26 22 26 C26 26 29 24.5 32.25 21 L32.25 23.25 C29.5 26.5 26.25 28 22 28 C17.75 28 14.5 26.5 11.75 23.25 Z" fill="#FFFFFF"/>
+          <rect x="20" y="26" width="4" height="14" rx="2" fill="#FFFFFF"/>
+          <defs>
+            <linearGradient id="logoBgGrad" x1="22" y1="0" x2="22" y2="44" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#1A1A1A"/>
+              <stop offset="100%" stop-color="#3D1200"/>
+            </linearGradient>
+            <linearGradient id="logoFlameGrad" x1="22" y1="44" x2="22" y2="8" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF2200"/>
+              <stop offset="61%" stop-color="#FF7000"/>
+              <stop offset="100%" stop-color="#FFD000"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="wordmark">FuelFlow</span>
+      </header>
+
+      <main class="view-stage">
+        <section id="homeView" class="view active" data-view="home">
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <p class="eyebrow flame">Warm awareness</p>
+              <h2>Food is fuel. Feelings matter.</h2>
+              <p class="hero-text">Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.</p>
+              <button class="gradient-button" type="button" data-nav-target="log">Start Tracking</button>
+            </div>
+            <aside class="quote-card">
+              <span class="quote-icon">✦</span>
+              <p id="quoteText"></p>
+            </aside>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <span class="feature-icon">🍲</span>
+              <h3>Log Your Meals</h3>
+              <p>Capture what you ate in seconds, from full meals to coffee runs.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-icon">💛</span>
+              <h3>Track Your Mood</h3>
+              <p>Notice how food, timing, energy, and emotions connect.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-icon">🔥</span>
+              <h3>Get AI Insights</h3>
+              <p>Receive weekly reflections that feel human, useful, and kind.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="logView" class="view" data-view="log">
+          <div class="section-heading">
+            <p class="eyebrow flame">Meal check-in</p>
+            <h2>What did you eat?</h2>
+          </div>
+
+          <form id="mealForm" class="card form-card">
+            <label>
+              <span>Meal name</span>
+              <input name="mealName" type="text" placeholder="e.g. Dal chawal, Chicken salad, 2 beers" required>
+            </label>
+
+            <div class="form-row">
+              <label>
+                <span>Meal type</span>
+                <select name="mealType" required>
+                  <option>Breakfast</option>
+                  <option>Lunch</option>
+                  <option>Dinner</option>
+                  <option>Snack</option>
+                  <option>Drink</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Portion feel</span>
+                <select name="portionFeel" required>
+                  <option>Just right</option>
+                  <option>A bit less</option>
+                  <option>More than usual</option>
+                </select>
+              </label>
+            </div>
+
+            <fieldset>
+              <legend>Mood before eating</legend>
+              <div class="mood-group" data-mood-group="before"></div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Mood after eating</legend>
+              <div class="mood-group" data-mood-group="after"></div>
+            </fieldset>
+
+            <label>
+              <span>Energy level after eating: <strong id="energyValue">7</strong>/10</span>
+              <input id="energyRange" name="energy" type="range" min="1" max="10" value="7">
+            </label>
+
+            <label>
+              <span>Notes <small>optional</small></span>
+              <textarea name="notes" rows="4" placeholder="Anything you noticed about cravings, comfort, energy, timing, or context..."></textarea>
+            </label>
+
+            <div class="toggle-row">
+              <div>
+                <strong>Was alcohol involved?</strong>
+                <p>A simple note helps your weekly patterns make more sense.</p>
+              </div>
+              <label class="switch">
+                <input id="alcoholToggle" name="alcohol" type="checkbox">
+                <span></span>
+              </label>
+            </div>
+
+            <label id="drinksField" class="hidden-soft">
+              <span>How many drinks?</span>
+              <input name="drinks" type="number" min="1" max="20" value="1">
+            </label>
+
+            <button class="gradient-button full" type="submit">Log It</button>
+          </form>
+        </section>
+
+        <section id="todayView" class="view" data-view="today">
+          <div class="section-heading">
+            <p class="eyebrow flame">Today's flow</p>
+            <h2>Today's meals</h2>
+          </div>
+
+          <div id="todaySummary" class="summary-grid"></div>
+          <div id="todayList" class="entry-list"></div>
+          <div id="emptyToday" class="empty-state">
+            <div class="empty-art">🍜</div>
+            <h3>Your day is ready when you are.</h3>
+            <p>Log your first meal and start noticing what supports your energy.</p>
+            <button class="gradient-button" type="button" data-nav-target="log">Log your first meal</button>
+          </div>
+
+          <button id="quickAddToggle" class="secondary-button" type="button">Add extra food</button>
+          <form id="quickAddForm" class="card quick-add hidden-soft">
+            <label>
+              <span>Quick add</span>
+              <input name="quickName" type="text" placeholder="Fruit, tea, protein bar..." required>
+            </label>
+            <button class="gradient-button compact" type="submit">Save</button>
+          </form>
+        </section>
+
+        <section id="insightsView" class="view" data-view="insights">
+          <div class="section-heading">
+            <p class="eyebrow flame">Weekly reflection</p>
+            <h2>AI insights</h2>
+          </div>
+
+          <div id="insightsEmpty" class="card insight-empty">
+            <h3>Log a few meals first and come back for your insight.</h3>
+            <p>FuelFlow works best when it can read a little rhythm from your week.</p>
+          </div>
+
+          <button id="insightsButton" class="gradient-button full" type="button">Get My Weekly Insight</button>
+
+          <div id="insightsHint" class="card insight-empty hidden-soft">
+            <h3>Log at least 3 meals first and come back — your insight will be much more meaningful.</h3>
+          </div>
+
+          <div id="insightsLoading" class="loading-card hidden-soft">
+            <div class="fiery-orb"></div>
+            <p>FuelFlow is reading your week...</p>
+          </div>
+
+          <div id="insightsResult" class="hidden-soft">
+            <article class="card insight-card">
+              <h3>Your weekly insight</h3>
+              <p id="insightText"></p>
+            </article>
+            <div id="factsGrid" class="facts-grid"></div>
+          </div>
+        </section>
+
+        <section id="exploreView" class="view" data-view="explore">
+          <div class="section-heading">
+            <p class="eyebrow flame">Curious plates</p>
+            <h2>Food from around the world</h2>
+          </div>
+          <div id="exploreGrid" class="explore-grid"></div>
+        </section>
+      </main>
+
+      <footer class="app-footer">Made with 🔥 by FuelFlow</footer>
+    </div>
+
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <button class="nav-item active" type="button" data-nav-target="home"><span>🏠</span>Home</button>
+      <button class="nav-item" type="button" data-nav-target="log"><span>➕</span>Log</button>
+      <button class="nav-item" type="button" data-nav-target="today"><span>☀️</span>Today</button>
+      <button class="nav-item" type="button" data-nav-target="insights"><span>✨</span>Insights</button>
+      <button class="nav-item" type="button" data-nav-target="explore"><span>🌍</span>Explore</button>
+    </nav>
+
+    <div id="toast" class="toast" role="alert"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>
