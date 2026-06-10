@@ -40,8 +40,8 @@
           <div class="hero-grid">
             <div class="hero-copy">
               <p class="eyebrow flame">Warm awareness</p>
-              <h2>Food is fuel. Feelings matter.</h2>
-              <p class="hero-text">Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.</p>
+              <h2 id="homeHeading">Food is fuel. Feelings matter.</h2>
+              <p id="homeSubheading" class="hero-text">Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.</p>
               <button class="gradient-button" type="button" data-nav-target="log">Start Tracking</button>
             </div>
             <aside class="quote-card">
@@ -49,6 +49,21 @@
               <p id="quoteText"></p>
             </aside>
           </div>
+
+          <section id="journeyCard" class="card journey-card hidden-soft"></section>
+
+          <section id="homeProgress" class="card progress-section hidden-soft">
+            <div class="progress-heading">
+              <div>
+                <p class="eyebrow flame">Today's Progress</p>
+                <h3>Daily targets</h3>
+              </div>
+              <p>Estimated based on meals logged</p>
+            </div>
+            <div id="macroProgressList" class="macro-progress-list"></div>
+          </section>
+
+          <section id="profileCard" class="card profile-card hidden-soft"></section>
 
           <div class="feature-grid">
             <article class="feature-card">
@@ -141,6 +156,7 @@
 
             <button class="gradient-button full" type="submit">Log It</button>
           </form>
+          <article id="foodInsightCard" class="card food-insight-card hidden-soft"></article>
         </section>
 
         <section id="todayView" class="view" data-view="today">
@@ -209,6 +225,100 @@
       </main>
 
       <footer class="app-footer">Made with 🔥 by FuelFlow</footer>
+    </div>
+
+    <div id="onboardingOverlay" class="onboarding-overlay hidden-soft" aria-modal="true" role="dialog">
+      <div class="onboarding-card">
+        <div class="onboarding-track" id="onboardingTrack">
+          <section class="onboarding-step" data-step="0">
+            <p class="eyebrow flame">Welcome</p>
+            <h2>Hey! I'm FuelFlow 🔥</h2>
+            <label>
+              <span>What should I call you?</span>
+              <input id="onboardingName" type="text" placeholder="First name">
+            </label>
+            <button class="gradient-button full onboarding-next" type="button">Continue →</button>
+          </section>
+
+          <section class="onboarding-step" data-step="1">
+            <p class="eyebrow flame">Your basics</p>
+            <h2>Tell me about yourself</h2>
+            <div class="form-row">
+              <label>
+                <span>Age</span>
+                <input id="onboardingAge" type="number" min="1" placeholder="28">
+              </label>
+              <label>
+                <span>Weight in kg</span>
+                <input id="onboardingWeight" type="number" min="1" step="0.1" placeholder="70">
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Height in cm</span>
+                <input id="onboardingHeight" type="number" min="1" step="0.1" placeholder="175">
+              </label>
+              <label>
+                <span>Biological sex</span>
+                <select id="onboardingSex">
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+              </label>
+            </div>
+            <button class="gradient-button full onboarding-next" type="button">Continue →</button>
+          </section>
+
+          <section class="onboarding-step" data-step="2">
+            <p class="eyebrow flame">Your direction</p>
+            <h2>What's your goal?</h2>
+            <fieldset>
+              <legend>Goal</legend>
+              <div class="onboarding-pills" data-onboarding-group="goal">
+                <button class="mood-pill active" type="button" data-value="Lose weight">Lose weight</button>
+                <button class="mood-pill" type="button" data-value="Gain muscle">Gain muscle</button>
+                <button class="mood-pill" type="button" data-value="Maintain">Maintain</button>
+                <button class="mood-pill" type="button" data-value="Improve energy">Improve energy</button>
+                <button class="mood-pill" type="button" data-value="Eat healthier">Eat healthier</button>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Activity level</legend>
+              <div class="onboarding-pills" data-onboarding-group="activity_level">
+                <button class="mood-pill active" type="button" data-value="Sedentary">Sedentary</button>
+                <button class="mood-pill" type="button" data-value="Light">Light</button>
+                <button class="mood-pill" type="button" data-value="Moderate">Moderate</button>
+                <button class="mood-pill" type="button" data-value="Active">Active</button>
+                <button class="mood-pill" type="button" data-value="Very Active">Very Active</button>
+              </div>
+              <p id="activityDescription" class="activity-description">Desk job, little to no exercise</p>
+            </fieldset>
+            <button class="gradient-button full onboarding-next" type="button">Continue →</button>
+          </section>
+
+          <section class="onboarding-step" data-step="3">
+            <p class="eyebrow flame">Body type</p>
+            <h2>What's your body type?</h2>
+            <div id="bodyTypeCards" class="visual-card-grid three-up"></div>
+            <button class="gradient-button full onboarding-next" type="button">Continue →</button>
+          </section>
+
+          <section class="onboarding-step" data-step="4">
+            <p class="eyebrow flame">Body fat estimate</p>
+            <h2>Which looks most like you?</h2>
+            <div id="bodyFatCards" class="visual-card-grid"></div>
+            <button class="gradient-button full onboarding-next" type="button">Continue →</button>
+          </section>
+
+          <section class="onboarding-step" data-step="5">
+            <p class="eyebrow flame">Target body</p>
+            <h2>Where do you want to get to?</h2>
+            <p class="target-helper">This is where I want to be</p>
+            <div id="targetBodyFatCards" class="visual-card-grid"></div>
+            <button id="finishOnboarding" class="gradient-button full" type="button">Let's go 🔥</button>
+          </section>
+        </div>
+      </div>
     </div>
 
     <nav class="bottom-nav" aria-label="Main navigation">
