@@ -4,6 +4,7 @@ const USER_ID_KEY = "fuelflow_user_id";
 const EMAIL_KEY = "fuelflow_email";
 const THEME_KEY = "fuelflow_theme";
 const SIZZLE_KEY = "fuelflow_sizzle_history";
+const CHAT_SESSIONS_KEY = "fuelflow_chat_sessions";
 const STREAK_KEY = "fuelflow_streak";
 const DEFAULT_MEALS_PER_DAY = 4;
 
@@ -194,6 +195,9 @@ const sizzleMessages = document.querySelector("#sizzleMessages");
 const sizzleForm = document.querySelector("#sizzleForm");
 const sizzleInput = document.querySelector("#sizzleInput");
 const clearSizzleChat = document.querySelector("#clearSizzleChat");
+const previousChatsButton = document.querySelector("#previousChatsButton");
+const chatSessionsDropdown = document.querySelector("#chatSessionsDropdown");
+const backToCurrentChat = document.querySelector("#backToCurrentChat");
 const exploreGrid = document.querySelector("#exploreGrid");
 const settingsProfile = document.querySelector("#settingsProfile");
 const themeFiery = document.querySelector("#themeFiery");
@@ -224,6 +228,8 @@ let selectedMoods = {
 let logsCache = [];
 let logoutArmed = false;
 let onboardingMode = "full";
+let viewingArchivedChat = false;
+let archivedChatMessages = [];
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -956,25 +962,139 @@ function writeSizzleHistory(history) {
   localStorage.setItem(SIZZLE_KEY, JSON.stringify(history.slice(-20)));
 }
 
+function readChatSessions() {
+  try {
+    return JSON.parse(localStorage.getItem(CHAT_SESSIONS_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function writeChatSessions(sessions) {
+  localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(sessions.slice(0, 5)));
+}
+
+function saveCurrentChatSession() {
+  const messages = readSizzleHistory();
+  if (!messages.some((message) => message.role === "user")) return;
+
+  const firstUserMessage = messages.find((message) => message.role === "user")?.content || "Sizzle chat";
+  const sessions = readChatSessions().filter((session) => {
+    return JSON.stringify(session.messages) !== JSON.stringify(messages);
+  });
+  writeChatSessions([
+    {
+      timestamp: new Date().toISOString(),
+      preview: firstUserMessage,
+      messages,
+    },
+    ...sessions,
+  ]);
+}
+
+function renderChatSessionsDropdown() {
+  const sessions = readChatSessions();
+  if (!sessions.length) {
+    chatSessionsDropdown.innerHTML = `<p class="chat-session-empty">No previous sessions yet.</p>`;
+    return;
+  }
+
+  chatSessionsDropdown.innerHTML = sessions.map((session, index) => {
+    const date = new Date(session.timestamp).toLocaleString([], {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `
+      <button class="chat-session-item" type="button" data-chat-session-index="${index}">
+        <span>${escapeHtml(date)}</span>
+        <p>${escapeHtml(session.preview || "Sizzle chat")}</p>
+      </button>
+    `;
+  }).join("");
+}
+
+function parseSizzleMarkdown(text) {
+  const formatInline = (value) => {
+    return escapeHtml(value)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*/g, "$1<em>$2</em>");
+  };
+
+  const lines = String(text || "").split("\n");
+  const html = [];
+  let inList = false;
+
+  lines.forEach((line) => {
+    const bulletMatch = line.match(/^\s*(?:•|-)\s+(.+)/);
+    if (bulletMatch) {
+      if (!inList) {
+        html.push("<ul>");
+        inList = true;
+      }
+      html.push(`<li>${formatInline(bulletMatch[1])}</li>`);
+      return;
+    }
+
+    if (inList) {
+      html.push("</ul>");
+      inList = false;
+    }
+
+    if (!line.trim()) {
+      html.push("<br>");
+      return;
+    }
+
+    html.push(`${formatInline(line)}<br>`);
+  });
+
+  if (inList) {
+    html.push("</ul>");
+  }
+
+  return html.join("").replace(/(<br>)+$/, "");
+}
+
 function renderSizzleMessages(extraMessages = []) {
   const intro = {
     role: "assistant",
     content: "Hey! I'm Sizzle 🔥 — your personal food and nutrition AI. Ask me anything about what you eat, your goals, recipes, or how to feel better. I'm here to help, not judge.",
   };
-  const messages = [intro, ...readSizzleHistory(), ...extraMessages];
-  sizzleMessages.innerHTML = messages.map((message) => {
+  const activeMessages = viewingArchivedChat ? archivedChatMessages : readSizzleHistory();
+  const messages = [intro, ...activeMessages, ...extraMessages];
+  sizzleMessages.innerHTML = "";
+  messages.forEach((message) => {
     const isUser = message.role === "user";
-    return `
-      <div class="chat-message ${isUser ? "user" : "assistant"}">
-        <span class="chat-name">${isUser ? "You" : "🔥 Sizzle"}</span>
-        <div class="chat-bubble">${escapeHtml(message.content)}</div>
-      </div>
-    `;
-  }).join("");
+    const wrapper = document.createElement("div");
+    wrapper.className = `chat-message ${isUser ? "user" : "assistant"}`;
+
+    const name = document.createElement("span");
+    name.className = "chat-name";
+    name.textContent = isUser ? "You" : "🔥 Sizzle";
+
+    const bubble = document.createElement("div");
+    bubble.className = `chat-bubble ${isUser ? "" : "sizzle-message"}`;
+    if (isUser) {
+      bubble.textContent = message.content;
+    } else {
+      bubble.innerHTML = parseSizzleMarkdown(message.content);
+    }
+
+    wrapper.append(name, bubble);
+    sizzleMessages.appendChild(wrapper);
+  });
+  backToCurrentChat.classList.toggle("hidden-soft", !viewingArchivedChat);
+  sizzleForm.classList.toggle("hidden-soft", viewingArchivedChat);
   sizzleMessages.scrollTop = sizzleMessages.scrollHeight;
 }
 
 async function sendSizzleMessage(message) {
+  if (viewingArchivedChat) {
+    viewingArchivedChat = false;
+    archivedChatMessages = [];
+  }
   const history = readSizzleHistory();
   const nextHistory = [...history, { role: "user", content: message }];
   writeSizzleHistory(nextHistory);
@@ -999,6 +1119,7 @@ async function sendSizzleMessage(message) {
     writeSizzleHistory([...nextHistory, { role: "assistant", content: error.message || "I hit a pause, but I am still here. Try asking that again in a simpler way." }]);
   }
   renderSizzleMessages();
+  renderChatSessionsDropdown();
 }
 
 async function getInsights() {
@@ -1666,7 +1787,33 @@ function bindEvents() {
   });
 
   clearSizzleChat.addEventListener("click", () => {
+    saveCurrentChatSession();
     localStorage.removeItem(SIZZLE_KEY);
+    viewingArchivedChat = false;
+    archivedChatMessages = [];
+    renderChatSessionsDropdown();
+    renderSizzleMessages();
+  });
+
+  previousChatsButton.addEventListener("click", () => {
+    renderChatSessionsDropdown();
+    chatSessionsDropdown.classList.toggle("hidden-soft");
+  });
+
+  chatSessionsDropdown.addEventListener("click", (event) => {
+    const sessionButton = event.target.closest("[data-chat-session-index]");
+    if (!sessionButton) return;
+    const session = readChatSessions()[Number(sessionButton.dataset.chatSessionIndex)];
+    if (!session) return;
+    viewingArchivedChat = true;
+    archivedChatMessages = session.messages || [];
+    chatSessionsDropdown.classList.add("hidden-soft");
+    renderSizzleMessages();
+  });
+
+  backToCurrentChat.addEventListener("click", () => {
+    viewingArchivedChat = false;
+    archivedChatMessages = [];
     renderSizzleMessages();
   });
 
@@ -1719,6 +1866,7 @@ async function init() {
   quoteText.textContent = randomItem(quotes);
   renderMoodGroups();
   renderExplore();
+  renderChatSessionsDropdown();
   renderSizzleMessages();
   bindEvents();
   await verifyExistingSession();

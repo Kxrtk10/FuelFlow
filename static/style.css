@@ -988,6 +988,58 @@ legend {
   font-weight: 800;
 }
 
+.chat-history-menu {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chat-sessions-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+  display: grid;
+  width: min(420px, 100%);
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface2);
+  padding: 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.chat-session-item {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  padding: 10px;
+  text-align: left;
+}
+
+.chat-session-item span {
+  color: var(--secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.chat-session-item p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
+.chat-session-empty {
+  margin: 0;
+  color: var(--text-secondary);
+  padding: 8px;
+}
+
 .sizzle-messages {
   display: grid;
   max-height: 380px;
@@ -1033,6 +1085,35 @@ legend {
 .chat-message.assistant .chat-bubble {
   border: 1px solid var(--line);
   background: var(--surface2);
+}
+
+.sizzle-message ul {
+  margin: 8px 0 8px 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.sizzle-message ul li {
+  position: relative;
+  color: #fff;
+  padding: 4px 0 4px 20px;
+}
+
+.sizzle-message ul li::before {
+  content: "🔥";
+  position: absolute;
+  left: 0;
+  font-size: 12px;
+}
+
+.sizzle-message strong {
+  color: #ff8c00;
+  font-weight: 600;
+}
+
+.sizzle-message p {
+  margin: 6px 0;
+  line-height: 1.6;
 }
 
 .sizzle-form {
