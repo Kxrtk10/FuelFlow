@@ -6,6 +6,8 @@ const THEME_KEY = "fuelflow_theme";
 const SIZZLE_KEY = "fuelflow_sizzle_history";
 const CHAT_SESSIONS_KEY = "fuelflow_chat_sessions";
 const STREAK_KEY = "fuelflow_streak";
+const DAILY_MOOD_KEY = "fuelflow_daily_mood";
+const DAILY_MOOD_DISMISS_KEY = "fuelflow_daily_mood_dismissed";
 const DEFAULT_MEALS_PER_DAY = 4;
 
 const quotes = [
@@ -102,6 +104,29 @@ const bodyFatRanges = {
 
 const exploreItems = [
   {
+    icon: "💛",
+    title: "Feeling Low? Read This 💛",
+    description: "A warm note for the days when food, energy, or progress feels complicated.",
+    highlight: true,
+    intro: "Whatever brought you here today — you're in the right place. FuelFlow doesn't judge. We walk this with you.",
+    stories: [
+      {
+        name: "Story 1 — Priya, 24",
+        text: "I used to skip meals to lose weight faster. I was exhausted and miserable. Understanding how food actually works changed everything. Down 8kg, zero starvation.",
+      },
+      {
+        name: "Story 2 — Arjun, 28",
+        text: "98kg and every diet felt like punishment. Tracking how food made me FEEL instead of just counting calories was the switch. Still eating biryani on weekends.",
+      },
+      {
+        name: "Story 3 — Meera, 31",
+        text: "I feared food for years. The no-guilt approach here genuinely rewired something. I enjoy eating now. That's everything.",
+      },
+    ],
+    closing: "You didn't fail. You're still learning. Keep going. 💛",
+    note: "Stories are illustrative and represent common experiences.",
+  },
+  {
     icon: "🥘",
     title: "Indian vegetarian",
     description: "Comforting, colorful plates built around lentils, grains, vegetables, and spice.",
@@ -167,6 +192,7 @@ const homeSubheading = document.querySelector("#homeSubheading");
 const homeMotivation = document.querySelector("#homeMotivation");
 const streakText = document.querySelector("#streakText");
 const dailyQuoteText = document.querySelector("#dailyQuoteText");
+const dailyMoodCheckIn = document.querySelector("#dailyMoodCheckIn");
 const journeyCard = document.querySelector("#journeyCard");
 const homeProgress = document.querySelector("#homeProgress");
 const macroProgressList = document.querySelector("#macroProgressList");
@@ -215,6 +241,7 @@ const onboardingWeight = document.querySelector("#onboardingWeight");
 const onboardingHeight = document.querySelector("#onboardingHeight");
 const onboardingSex = document.querySelector("#onboardingSex");
 const activityDescription = document.querySelector("#activityDescription");
+const foodRelationshipMessage = document.querySelector("#foodRelationshipMessage");
 const bodyTypeCards = document.querySelector("#bodyTypeCards");
 const bodyFatCards = document.querySelector("#bodyFatCards");
 const targetBodyFatCards = document.querySelector("#targetBodyFatCards");
@@ -481,6 +508,7 @@ function createLogFromForm(formData) {
     moodAfter: selectedMoods.after,
     energy: Number(formData.get("energy")),
     notes: formData.get("notes").trim(),
+    dailyMood: readDailyMoodData()[getTodayKey()]?.mood || "",
     alcohol,
     drinks: alcohol ? Number(formData.get("drinks") || 1) : 0,
     eaten: false,
@@ -542,6 +570,38 @@ function updateStreakDisplay() {
   dailyQuoteText.textContent = getDailyQuote();
 }
 
+function readDailyMoodData() {
+  try {
+    return JSON.parse(localStorage.getItem(DAILY_MOOD_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function renderDailyMoodCheckIn() {
+  const today = getTodayKey();
+  const dismissedDate = localStorage.getItem(DAILY_MOOD_DISMISS_KEY);
+  dailyMoodCheckIn.classList.toggle("hidden-soft", dismissedDate === today);
+}
+
+async function saveDailyMood(mood) {
+  const today = getTodayKey();
+  const moodData = readDailyMoodData();
+  moodData[today] = {
+    mood,
+    timestamp: new Date().toISOString(),
+  };
+  localStorage.setItem(DAILY_MOOD_KEY, JSON.stringify(moodData));
+  localStorage.setItem(DAILY_MOOD_DISMISS_KEY, today);
+  if (readLogs().some((log) => dateKey(log.timestamp) === today)) {
+    const logs = readLogs().map((log) => {
+      return dateKey(log.timestamp) === today ? { ...log, dailyMood: mood } : log;
+    });
+    await writeLogs(logs);
+  }
+  dailyMoodCheckIn.classList.add("hidden-soft");
+}
+
 function getMoodTrend(logs) {
   if (!logs.length) {
     return "Ready to begin";
@@ -561,6 +621,7 @@ function renderHomePersonalization() {
     homeHeading.textContent = "Food is fuel. Feelings matter.";
     homeSubheading.textContent = "Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.";
     homeMotivation.classList.add("hidden-soft");
+    dailyMoodCheckIn.classList.add("hidden-soft");
     homeProgress.classList.add("hidden-soft");
     journeyCard.classList.add("hidden-soft");
     profileCard.classList.add("hidden-soft");
@@ -571,6 +632,7 @@ function renderHomePersonalization() {
   homeSubheading.textContent = getTimeGreeting();
   homeMotivation.classList.remove("hidden-soft");
   updateStreakDisplay();
+  renderDailyMoodCheckIn();
   renderJourneyCard();
   renderHomeProgress();
   renderProfileCard();
@@ -1171,7 +1233,7 @@ async function getInsights() {
 function renderExplore() {
   exploreGrid.innerHTML = exploreItems
     .map((item, index) => `
-      <article class="explore-card">
+      <article class="explore-card ${item.highlight ? "feeling-low-card" : ""}">
         <button class="explore-toggle" type="button" data-explore-index="${index}">
           <span class="explore-icon">${escapeHtml(item.icon)}</span>
           <span>
@@ -1181,10 +1243,25 @@ function renderExplore() {
           <span class="expand-arrow">⌄</span>
         </button>
         <div class="explore-body">
-          <ul>
-            ${item.details.map((detail) => `<li>${escapeHtml(detail)}</li>`).join("")}
-          </ul>
-          <p class="explore-benefit">${escapeHtml(item.benefit)}</p>
+          ${item.highlight ? `
+            <p class="feeling-low-intro">${escapeHtml(item.intro)}</p>
+            <h3>Community Stories</h3>
+            <div class="community-stories">
+              ${item.stories.map((story) => `
+                <article>
+                  <strong>${escapeHtml(story.name)}</strong>
+                  <p>"${escapeHtml(story.text)}"</p>
+                </article>
+              `).join("")}
+            </div>
+            <p class="feeling-low-closing">${escapeHtml(item.closing)}</p>
+            <p class="story-note"><em>${escapeHtml(item.note)}</em></p>
+          ` : `
+            <ul>
+              ${item.details.map((detail) => `<li>${escapeHtml(detail)}</li>`).join("")}
+            </ul>
+            <p class="explore-benefit">${escapeHtml(item.benefit)}</p>
+          `}
         </div>
       </article>
     `)
@@ -1195,6 +1272,7 @@ let onboardingStep = 0;
 let onboardingSelections = {
   goal: "Lose weight",
   activity_level: "Sedentary",
+  food_relationship: "Pretty good",
   body_type: "",
   body_fat_range: "",
   body_fat_mid: 0,
@@ -1206,6 +1284,7 @@ function getDefaultOnboardingSelections() {
   return {
     goal: "Lose weight",
     activity_level: "Sedentary",
+    food_relationship: "Pretty good",
     body_type: "",
     body_fat_range: "",
     body_fat_mid: 0,
@@ -1261,6 +1340,7 @@ function fillOnboardingFromProfile(profile = readUser()) {
     onboardingHeight.value = "";
     onboardingSex.value = "Male";
     activityDescription.textContent = activityDescriptions.Sedentary;
+    foodRelationshipMessage.classList.add("hidden-soft");
     document.querySelectorAll(".onboarding-pills").forEach((group) => {
       group.querySelectorAll(".mood-pill").forEach((button) => {
         button.classList.toggle("active", button.dataset.value === onboardingSelections[group.dataset.onboardingGroup]);
@@ -1276,6 +1356,7 @@ function fillOnboardingFromProfile(profile = readUser()) {
   onboardingSelections = {
     goal: profile.goal || "Lose weight",
     activity_level: profile.activity_level || "Sedentary",
+    food_relationship: profile.food_relationship || "Pretty good",
     body_type: profile.body_type || "",
     body_fat_range: profile.body_fat_range || "",
     body_fat_mid: Number(profile.body_fat_mid || 0),
@@ -1288,6 +1369,7 @@ function fillOnboardingFromProfile(profile = readUser()) {
     });
   });
   activityDescription.textContent = activityDescriptions[onboardingSelections.activity_level];
+  foodRelationshipMessage.classList.toggle("hidden-soft", onboardingSelections.food_relationship !== "I struggle sometimes");
 }
 
 function startOnboarding(step = 0, mode = "full") {
@@ -1367,6 +1449,7 @@ async function finishUserOnboarding() {
     sex: onboardingSex.value || existingProfile.sex || "Male",
     goal: onboardingSelections.goal,
     activity_level: onboardingSelections.activity_level,
+    food_relationship: onboardingSelections.food_relationship || existingProfile.food_relationship || "Pretty good",
     body_type: onboardingSelections.body_type || existingProfile.body_type || "",
     body_fat_range: onboardingSelections.body_fat_range || existingProfile.body_fat_range || "",
     body_fat_mid: onboardingSelections.body_fat_mid || existingProfile.body_fat_mid || 0,
@@ -1611,6 +1694,12 @@ function bindEvents() {
       return;
     }
 
+    const dailyMoodButton = event.target.closest("[data-daily-mood]");
+    if (dailyMoodButton) {
+      saveDailyMood(dailyMoodButton.dataset.dailyMood);
+      return;
+    }
+
     const onboardingPill = event.target.closest(".onboarding-pills .mood-pill");
     if (onboardingPill) {
       const group = onboardingPill.closest(".onboarding-pills");
@@ -1620,6 +1709,9 @@ function bindEvents() {
       onboardingSelections[group.dataset.onboardingGroup] = onboardingPill.dataset.value;
       if (group.dataset.onboardingGroup === "activity_level") {
         activityDescription.textContent = activityDescriptions[onboardingPill.dataset.value];
+      }
+      if (group.dataset.onboardingGroup === "food_relationship") {
+        foodRelationshipMessage.classList.toggle("hidden-soft", onboardingPill.dataset.value !== "I struggle sometimes");
       }
       if (group.dataset.onboardingGroup === "goal") {
         onboardingSelections.target_body_fat_range = "";

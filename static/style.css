@@ -235,6 +235,36 @@ p {
   line-height: 1.6;
 }
 
+.daily-mood-check {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: -10px 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(36, 36, 36, 0.68);
+  color: var(--text-secondary);
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.daily-mood-pills {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.daily-mood-pills button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface2);
+  cursor: pointer;
+  padding: 0;
+}
+
 .quote-card {
   display: flex;
   flex-direction: column;
@@ -1133,6 +1163,10 @@ legend {
   overflow: hidden;
 }
 
+.explore-card.feeling-low-card {
+  border-color: #ffd700;
+}
+
 .explore-toggle {
   display: grid;
   width: 100%;
@@ -1195,6 +1229,43 @@ legend {
   margin: 14px 0 0;
   color: var(--accent);
   font-weight: 800;
+}
+
+.feeling-low-intro,
+.community-stories p,
+.story-note {
+  line-height: 1.7;
+}
+
+.community-stories {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.community-stories article {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface2);
+  padding: 12px;
+}
+
+.community-stories strong,
+.feeling-low-closing {
+  color: var(--accent);
+}
+
+.feeling-low-closing {
+  margin: 18px 0 0;
+  font-size: 1.18rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.story-note {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
 }
 
 .bottom-nav {
@@ -1403,10 +1474,16 @@ body.theme-ocean .theme-pill.active {
 }
 
 .activity-description,
-.target-helper {
+.target-helper,
+.food-relationship-message {
   margin: 10px 0 0;
   color: var(--secondary);
   font-weight: 800;
+}
+
+.food-relationship-message {
+  color: var(--accent);
+  line-height: 1.55;
 }
 
 .visual-card-grid {

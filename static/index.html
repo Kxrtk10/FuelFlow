@@ -88,6 +88,16 @@
                 <p id="streakText" class="streak-text">Start today's streak 🔥</p>
                 <p id="dailyQuoteText" class="daily-quote"></p>
               </div>
+              <div id="dailyMoodCheckIn" class="daily-mood-check hidden-soft">
+                <span>How are you feeling today?</span>
+                <div class="daily-mood-pills" aria-label="Daily mood check-in">
+                  <button type="button" data-daily-mood="😔">😔</button>
+                  <button type="button" data-daily-mood="😐">😐</button>
+                  <button type="button" data-daily-mood="🙂">🙂</button>
+                  <button type="button" data-daily-mood="😊">😊</button>
+                  <button type="button" data-daily-mood="🔥">🔥</button>
+                </div>
+              </div>
               <button class="gradient-button" type="button" data-nav-target="log">Start Tracking</button>
             </div>
             <aside class="quote-card">
@@ -390,6 +400,16 @@
                 <button class="mood-pill" type="button" data-value="Improve energy">Improve energy</button>
                 <button class="mood-pill" type="button" data-value="Eat healthier">Eat healthier</button>
               </div>
+            </fieldset>
+            <fieldset>
+              <legend>How do you feel about food right now?</legend>
+              <div class="onboarding-pills" data-onboarding-group="food_relationship">
+                <button class="mood-pill active" type="button" data-value="Pretty good">😊 Pretty good</button>
+                <button class="mood-pill" type="button" data-value="It's complicated">😐 It's complicated</button>
+                <button class="mood-pill" type="button" data-value="I struggle sometimes">😔 I struggle sometimes</button>
+                <button class="mood-pill" type="button" data-value="Ready to transform">💪 Ready to transform</button>
+              </div>
+              <p id="foodRelationshipMessage" class="food-relationship-message hidden-soft">That's okay. FuelFlow is a safe space — no judgment, no pressure. We go at your pace. 💛</p>
             </fieldset>
             <fieldset>
               <legend>Activity level</legend>
