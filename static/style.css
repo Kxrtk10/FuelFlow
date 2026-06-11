@@ -1575,6 +1575,40 @@ body.theme-ocean .theme-pill.active {
   padding: 22px;
 }
 
+.grocery-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0 14px;
+}
+
+.grocery-toggle .expand-arrow {
+  transition: transform var(--transition);
+}
+
+.grocery-section.open .grocery-toggle .expand-arrow {
+  transform: rotate(180deg);
+}
+
+.grocery-dropdown {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.grocery-section.open .grocery-dropdown {
+  max-height: 520px;
+}
+
 .grocery-list {
   display: grid;
   gap: 9px;

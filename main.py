@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sqlite3
+import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -174,20 +175,33 @@ def summarize_logs(logs: list[dict[str, Any]]) -> str:
 
 def calculate_plan_macros(profile: dict[str, Any]) -> dict[str, int]:
     calories = int(profile.get("daily_calories") or 2000)
-    plan_type = profile.get("plan_type", "Maintain")
-    ratios = {
-        "Cut": (0.35, 0.40, 0.25),
-        "Bulk": (0.30, 0.50, 0.20),
-        "Lean Bulk": (0.35, 0.45, 0.20),
-        "Recomp": (0.40, 0.35, 0.25),
-        "Maintain": (0.30, 0.45, 0.25),
-    }.get(plan_type, (0.30, 0.45, 0.25))
-    protein_ratio, carbs_ratio, fat_ratio = ratios
+    weight_kg = float(profile.get("weight_kg") or 70)
+    plan_type = str(profile.get("plan_type", "Maintain")).lower()
+    if plan_type == "cut":
+        protein_g = round(weight_kg * 2.0)
+        fat_g = round(weight_kg * 0.8)
+    elif plan_type == "bulk":
+        protein_g = round(weight_kg * 1.8)
+        fat_g = round(weight_kg * 1.0)
+    elif plan_type == "lean bulk":
+        protein_g = round(weight_kg * 2.0)
+        fat_g = round(weight_kg * 0.9)
+    elif plan_type == "recomp":
+        protein_g = round(weight_kg * 2.2)
+        fat_g = round(weight_kg * 1.0)
+    else:
+        protein_g = round(weight_kg * 1.6)
+        fat_g = round(weight_kg * 0.9)
+
+    protein_cals = protein_g * 4
+    fat_cals = fat_g * 9
+    carb_cals = calories - protein_cals - fat_cals
+    carbs_g = max(round(carb_cals / 4), 50)
     return {
         "daily_calories": calories,
-        "protein_g": round((calories * protein_ratio) / 4),
-        "carbs_g": round((calories * carbs_ratio) / 4),
-        "fat_g": round((calories * fat_ratio) / 9),
+        "protein_g": protein_g,
+        "carbs_g": carbs_g,
+        "fat_g": fat_g,
     }
 
 
@@ -473,6 +487,18 @@ async def generate_meal_plan(
     data: MealPlanRequest,
     user: sqlite3.Row = Depends(get_current_user),
 ) -> dict[str, Any]:
+    try:
+        return await _generate_meal_plan_impl(data, user)
+    except Exception as e:
+        print(f"MEAL PLAN ERROR: {e}")
+        traceback.print_exc()
+        raise
+
+
+async def _generate_meal_plan_impl(
+    data: MealPlanRequest,
+    user: sqlite3.Row = Depends(get_current_user),
+) -> dict[str, Any]:
     profile = data.user_profile or {}
     macros = calculate_plan_macros(profile)
     profile_json = json.dumps(profile, ensure_ascii=False)
@@ -486,14 +512,17 @@ Calculated daily targets:
 - fat_g: {macros["fat_g"]}
 
 Generate a complete personalized 7-day meal plan for this user.
-Use exactly {profile.get("meals_per_day", 4)} meals per day.
+Use the six required meal slots every day, regardless of the selected meals_per_day value.
+Always include Breakfast, Morning Snack, Lunch, Afternoon Snack, Dinner, and Daily Treat. The Daily Treat must be 100-150 kcal and framed positively as: "Your daily treat — because dieting should be enjoyable".
 Respect food preference: {profile.get("food_preference", "Mix")}.
 Respect cuisine preference: {profile.get("cuisine", "Mix it up")}.
 Respect budget: {profile.get("budget", "No limit")}.
 Respect sport/activity: {profile.get("sport", "General fitness")}.
 Respect alcohol frequency: {profile.get("alcohol_frequency", "I don't drink")}.
+Keep the output concise: recipes must be 1-2 sentences max, ingredient lists must be 3-4 items max per meal, and every why field must be one sentence.
 
 Return ONLY valid JSON in this exact schema:
+Meal type options are exactly: "Breakfast", "Morning Snack", "Lunch", "Afternoon Snack", "Dinner", "Daily Treat".
 {{
   "plan_summary": {{
     "daily_calories": {macros["daily_calories"]},
@@ -540,14 +569,14 @@ Return ONLY valid JSON in this exact schema:
                 },
                 json={
                     "model": "claude-haiku-4-5-20251001",
-                    "max_tokens": 4000,
+                    "max_tokens": 8000,
                     "system": (
-                        "You are FuelFlow's nutrition engine. Generate a realistic, varied, and practical 7-day meal plan. "
+                        "Generate a realistic meal plan. Protein target is based on bodyweight (already calculated and provided) — do NOT increase it. "
+                        "Fat is moderate. Carbs fill the remaining calories. "
+                        "Include breakfast, morning snack, lunch, afternoon snack, dinner, and one small enjoyable daily treat. "
+                        "Keep meals practical, affordable, and varied across the week. No two days should have the same breakfast. "
                         "Use foods that are actually available and affordable in India unless another cuisine is specified. "
-                        "Each day should have different meals — no repetition across the week. "
-                        "Include Indian staples (dal, rice, roti, paneer, eggs, chicken) unless dietary restrictions say otherwise. "
-                        "Make recipes simple and quick. Be specific with quantities. "
-                        "If alcohol is consumed regularly, include one day with an alcohol balance guide showing how to adjust meals around a night out. "
+                        "Daily Treat meal_type must be included every day and should say: Your daily treat — because dieting should be enjoyable. "
                         "Return ONLY valid JSON, no markdown, no explanation."
                     ),
                     "messages": [{"role": "user", "content": prompt}],
@@ -560,7 +589,14 @@ Return ONLY valid JSON in this exact schema:
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
-        return json.loads(raw.strip())
+        cleaned = raw.strip()
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+            if match:
+                return json.loads(match.group(0))
+            raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail="FuelFlow could not generate your meal plan yet.") from exc
 

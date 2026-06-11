@@ -9,6 +9,7 @@ const STREAK_KEY = "fuelflow_streak";
 const DAILY_MOOD_KEY = "fuelflow_daily_mood";
 const DAILY_MOOD_DISMISS_KEY = "fuelflow_daily_mood_dismissed";
 const MEAL_PLAN_KEY = "fuelflow_meal_plan";
+const PLAN_SELECTIONS_KEY = "fuelflow_plan_selections";
 const GROCERY_CHECKS_KEY = "fuelflow_grocery_checks";
 const WEIGHT_HISTORY_KEY = "fuelflow_weight_history";
 const DEFAULT_MEALS_PER_DAY = 4;
@@ -416,6 +417,36 @@ function readMealPlan() {
 
 function writeMealPlan(plan) {
   localStorage.setItem(MEAL_PLAN_KEY, JSON.stringify(plan));
+}
+
+function writePlanSelections() {
+  localStorage.setItem(PLAN_SELECTIONS_KEY, JSON.stringify({
+    ...planSelections,
+    meals_per_day: Number(planMealsPerDay.value || DEFAULT_MEALS_PER_DAY),
+  }));
+}
+
+function restorePlanSelections() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PLAN_SELECTIONS_KEY));
+    if (!saved) return;
+    planSelections = {
+      ...planSelections,
+      ...saved,
+      cuisine: Array.isArray(saved.cuisine) ? saved.cuisine : String(saved.cuisine || "Indian").split(", "),
+    };
+    planMealsPerDay.value = saved.meals_per_day || DEFAULT_MEALS_PER_DAY;
+    document.querySelectorAll(".plan-pills").forEach((group) => {
+      const key = group.dataset.planGroup;
+      const selected = planSelections[key];
+      group.querySelectorAll(".mood-pill").forEach((button) => {
+        button.classList.toggle("active", Array.isArray(selected) ? selected.includes(button.dataset.value) : selected === button.dataset.value);
+      });
+    });
+    planTypeDescription.textContent = planTypeDescriptions[planSelections.plan_type];
+  } catch {
+    localStorage.removeItem(PLAN_SELECTIONS_KEY);
+  }
 }
 
 function readGroceryChecks() {
@@ -1420,16 +1451,22 @@ function renderMealPlan(plan) {
         </div>
         <button id="copyGroceryButton" class="secondary-button compact" type="button">Copy list</button>
       </div>
-      <ul class="grocery-list">
-        ${(plan.grocery_list || []).map((item, index) => `
-          <li>
-            <label class="${groceryChecks[index] ? "checked" : ""}">
-              <input class="grocery-check" type="checkbox" data-grocery-index="${index}" ${groceryChecks[index] ? "checked" : ""}>
-              <span>${escapeHtml(item)}</span>
-            </label>
-          </li>
-        `).join("")}
-      </ul>
+      <button class="grocery-toggle" type="button">
+        <span>🛒 Grocery List (${escapeHtml((plan.grocery_list || []).length)} items)</span>
+        <span class="expand-arrow">⌄</span>
+      </button>
+      <div class="grocery-dropdown">
+        <ul class="grocery-list">
+          ${(plan.grocery_list || []).map((item, index) => `
+            <li>
+              <label class="${groceryChecks[index] ? "checked" : ""}">
+                <input class="grocery-check" type="checkbox" data-grocery-index="${index}" ${groceryChecks[index] ? "checked" : ""}>
+                <span>${escapeHtml(item)}</span>
+              </label>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
     </section>
 
     <section class="card weekly-tips">
@@ -1458,6 +1495,8 @@ function renderMealPlan(plan) {
       </form>
       <p id="planUpdateMessage" class="plan-message hidden-soft">Plan updated for your new stats 🔥</p>
     </section>
+
+    <button id="bottomRegeneratePlanButton" class="gradient-button full" type="button">Not happy with this plan? Generate a new one 🔥</button>
   `;
 }
 
@@ -1519,6 +1558,7 @@ function setPlanLoading(isLoading) {
 
 async function generateMealPlan() {
   const profile = getPlanProfile();
+  writePlanSelections();
   setPlanLoading(true);
   try {
     const response = await apiFetch("/api/generate-meal-plan", {
@@ -2214,9 +2254,15 @@ function bindEvents() {
       return;
     }
 
-    if (event.target.closest("#regeneratePlanButton")) {
+    if (event.target.closest("#regeneratePlanButton") || event.target.closest("#bottomRegeneratePlanButton")) {
       localStorage.removeItem(MEAL_PLAN_KEY);
       renderMealPlanView();
+      return;
+    }
+
+    const groceryToggle = event.target.closest(".grocery-toggle");
+    if (groceryToggle) {
+      groceryToggle.closest(".grocery-section").classList.toggle("open");
       return;
     }
 
@@ -2358,6 +2404,7 @@ async function init() {
   quoteText.textContent = randomItem(quotes);
   renderMoodGroups();
   renderExplore();
+  restorePlanSelections();
   renderMealPlanView();
   renderChatSessionsDropdown();
   renderSizzleMessages();
