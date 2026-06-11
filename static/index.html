@@ -10,7 +10,49 @@
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
-    <div class="app-shell">
+    <section id="authView" class="auth-shell">
+      <div class="auth-card" id="loginView">
+        <div class="auth-brand">
+          <span class="wordmark">FuelFlow</span>
+        </div>
+        <h2>Welcome back 🔥</h2>
+        <label>
+          <span>Email</span>
+          <input id="loginEmail" type="email" placeholder="you@example.com">
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="loginPassword" type="password" placeholder="••••••••">
+        </label>
+        <p id="loginError" class="auth-error"></p>
+        <button id="loginButton" class="gradient-button full" type="button">Log In</button>
+        <button id="showSignupButton" class="auth-link" type="button">Don't have an account? Sign up</button>
+      </div>
+
+      <div class="auth-card hidden-soft" id="signupView">
+        <div class="auth-brand">
+          <span class="wordmark">FuelFlow</span>
+        </div>
+        <h2>Join FuelFlow 🔥</h2>
+        <label>
+          <span>Email</span>
+          <input id="signupEmail" type="email" placeholder="you@example.com">
+        </label>
+        <label>
+          <span>Password</span>
+          <input id="signupPassword" type="password" placeholder="At least 6 characters">
+        </label>
+        <label>
+          <span>Confirm password</span>
+          <input id="signupConfirmPassword" type="password" placeholder="Repeat password">
+        </label>
+        <p id="signupError" class="auth-error"></p>
+        <button id="signupButton" class="gradient-button full" type="button">Create Account</button>
+        <button id="showLoginButton" class="auth-link" type="button">Already have an account? Log in</button>
+      </div>
+    </section>
+
+    <div id="mainApp" class="app-shell hidden-soft">
       <header class="topbar">
         <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect width="44" height="44" rx="10" fill="url(#logoBgGrad)"/>
@@ -42,6 +84,10 @@
               <p class="eyebrow flame">Warm awareness</p>
               <h2 id="homeHeading">Food is fuel. Feelings matter.</h2>
               <p id="homeSubheading" class="hero-text">Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.</p>
+              <div id="homeMotivation" class="home-motivation hidden-soft">
+                <p id="streakText" class="streak-text">Start today's streak 🔥</p>
+                <p id="dailyQuoteText" class="daily-quote"></p>
+              </div>
               <button class="gradient-button" type="button" data-nav-target="log">Start Tracking</button>
             </div>
             <aside class="quote-card">
@@ -213,6 +259,24 @@
             </article>
             <div id="factsGrid" class="facts-grid"></div>
           </div>
+
+          <section id="sizzleSection" class="card sizzle-section">
+            <div class="sizzle-header">
+              <div class="sizzle-title">
+                <span class="sizzle-mark">🍴🔥</span>
+                <div>
+                  <h3>Sizzle 🔥</h3>
+                  <p>Your personal food & nutrition AI</p>
+                </div>
+              </div>
+              <button id="clearSizzleChat" class="clear-chat-button" type="button">Clear chat</button>
+            </div>
+            <div id="sizzleMessages" class="sizzle-messages"></div>
+            <form id="sizzleForm" class="sizzle-form">
+              <input id="sizzleInput" type="text" placeholder="Ask Sizzle anything..." autocomplete="off">
+              <button class="gradient-button compact" type="submit">➜</button>
+            </form>
+          </section>
         </section>
 
         <section id="exploreView" class="view" data-view="explore">
@@ -221,6 +285,46 @@
             <h2>Food from around the world</h2>
           </div>
           <div id="exploreGrid" class="explore-grid"></div>
+        </section>
+
+        <section id="settingsView" class="view" data-view="settings">
+          <div class="section-heading">
+            <p class="eyebrow flame">Control center</p>
+            <h2>Settings</h2>
+          </div>
+
+          <section id="settingsProfile" class="card settings-section"></section>
+
+          <section class="card settings-section">
+            <div class="settings-section-head">
+              <h3>Theme</h3>
+              <p>Choose the vibe that keeps tracking feeling good.</p>
+            </div>
+            <div class="theme-pills">
+              <button id="themeFiery" class="theme-pill" type="button" data-theme="fiery">🔥 Fiery (default)</button>
+              <button id="themeOcean" class="theme-pill" type="button" data-theme="ocean">🌊 Ocean</button>
+            </div>
+          </section>
+
+          <section class="card settings-section">
+            <div class="settings-section-head">
+              <h3>Account</h3>
+              <p>Take a break whenever you need to.</p>
+            </div>
+            <p id="logoutConfirmMessage" class="settings-confirm hidden-soft">Are you sure? Tap again to confirm</p>
+            <button id="settingsLogoutButton" class="danger-button full" type="button">Log Out</button>
+          </section>
+
+          <section class="card settings-section">
+            <div class="settings-section-head">
+              <h3>Data</h3>
+              <p>Your logs are yours. Export or reset them any time.</p>
+            </div>
+            <div class="settings-actions">
+              <button id="exportLogsButton" class="secondary-button" type="button">Export My Logs</button>
+              <button id="resetAllDataButton" class="outline-danger-button" type="button">Reset All Data</button>
+            </div>
+          </section>
         </section>
       </main>
 
@@ -321,12 +425,13 @@
       </div>
     </div>
 
-    <nav class="bottom-nav" aria-label="Main navigation">
+    <nav id="bottomNav" class="bottom-nav hidden-soft" aria-label="Main navigation">
       <button class="nav-item active" type="button" data-nav-target="home"><span>🏠</span>Home</button>
       <button class="nav-item" type="button" data-nav-target="log"><span>➕</span>Log</button>
       <button class="nav-item" type="button" data-nav-target="today"><span>☀️</span>Today</button>
       <button class="nav-item" type="button" data-nav-target="insights"><span>✨</span>Insights</button>
       <button class="nav-item" type="button" data-nav-target="explore"><span>🌍</span>Explore</button>
+      <button class="nav-item" type="button" data-nav-target="settings"><span>⚙️</span>Settings</button>
     </nav>
 
     <div id="toast" class="toast" role="alert"></div>

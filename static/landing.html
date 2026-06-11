@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FuelFlow — Transformation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+      .landing-shell {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0;
+      }
+
+      .landing-hero,
+      .landing-section {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(26, 26, 26, 0.92);
+        padding: clamp(24px, 6vw, 56px);
+      }
+
+      .landing-hero h1 {
+        margin: 0;
+        font-size: clamp(3rem, 9vw, 6.5rem);
+        line-height: 0.95;
+      }
+
+      .gradient-text {
+        background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .landing-copy {
+        max-width: 780px;
+        font-size: 1.12rem;
+        line-height: 1.8;
+      }
+
+      .landing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin: 18px 0;
+      }
+
+      .landing-section {
+        margin-top: 18px;
+      }
+
+      .landing-quote {
+        color: var(--text);
+        font-size: clamp(1.5rem, 4vw, 2.6rem);
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .landing-footer {
+        margin-top: 24px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      @media (max-width: 820px) {
+        .landing-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="landing-shell">
+      <section class="landing-hero">
+        <p class="eyebrow flame">🔥 Not just an app. A transformation.</p>
+        <h1>Become the best<br><span class="gradient-text">version of yourself.</span></h1>
+        <p class="landing-copy">FuelFlow tracks what you eat, understands how you feel, and keeps you accountable to the person you're working to become. Science-backed. Judgment-free. Built for real life.</p>
+        <a class="gradient-button" href="/">Start Tracking</a>
+      </section>
+
+      <section class="landing-grid" aria-label="Features">
+        <article class="feature-card">
+          <span class="feature-icon">🔥</span>
+          <h3>Track with intention</h3>
+          <p>Log meals, moods, energy, and patterns with care that keeps you moving forward.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">✨</span>
+          <h3>AI that tells you the truth</h3>
+          <p>Sizzle gives practical, honest guidance that respects your goal and your real life.</p>
+        </article>
+        <article class="feature-card">
+          <span class="feature-icon">🌍</span>
+          <h3>Food from everywhere</h3>
+          <p>Explore meals, cultures, budgets, and routines that fit the way you actually live.</p>
+        </article>
+      </section>
+
+      <section class="landing-section">
+        <p class="eyebrow flame">How it works</p>
+        <h2>Your transformation starts here</h2>
+        <p class="landing-copy">Track one meal, notice one pattern, make one better choice. FuelFlow turns daily awareness into steady accountability.</p>
+      </section>
+
+      <section class="landing-section">
+        <p class="eyebrow flame">Sizzle says</p>
+        <p class="landing-quote">One bad meal doesn't define your journey. One good habit does.</p>
+      </section>
+
+      <section class="landing-section">
+        <h2>The best version of you is waiting.</h2>
+        <p class="landing-copy">Start your transformation today. Free, forever.</p>
+        <a class="gradient-button" href="/">Open FuelFlow</a>
+      </section>
+
+      <footer class="landing-footer">FuelFlow — Not just an app. This is your transformation.</footer>
+    </main>
+  </body>
+</html>

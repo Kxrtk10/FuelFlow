@@ -1,5 +1,10 @@
-const STORAGE_KEY = "fuelflow.logs";
 const USER_KEY = "fuelflow_user";
+const TOKEN_KEY = "fuelflow_token";
+const USER_ID_KEY = "fuelflow_user_id";
+const EMAIL_KEY = "fuelflow_email";
+const THEME_KEY = "fuelflow_theme";
+const SIZZLE_KEY = "fuelflow_sizzle_history";
+const STREAK_KEY = "fuelflow_streak";
 const DEFAULT_MEALS_PER_DAY = 4;
 
 const quotes = [
@@ -30,6 +35,23 @@ const successMessages = [
   "Saved. You're doing great.",
   "Logged with love.",
   "One more piece of the puzzle.",
+];
+
+const dailyQuotes = [
+  "Discipline is choosing between what you want now and what you want most.",
+  "Your body hears everything your mind says. Feed both well.",
+  "Progress, not perfection. Every single day.",
+  "The people who transform are the ones who show up on the hard days.",
+  "One meal at a time. One day at a time. One version better.",
+  "You didn't come this far to only come this far.",
+  "Your future self is watching. Make them proud.",
+  "Transformation isn't a destination. It's a daily decision.",
+  "Eat like you love yourself. Move like you love yourself. Think like you love yourself.",
+  "The strongest thing you can do is stay consistent when nobody's watching.",
+  "Food is medicine. Choose your prescription.",
+  "Every time you choose your goal over your craving, you become stronger.",
+  "You are not starting over. You are starting again with more experience.",
+  "Small steps every day. Big transformation over time.",
 ];
 
 const activityDescriptions = {
@@ -123,8 +145,27 @@ const exploreItems = [
 ];
 
 const quoteText = document.querySelector("#quoteText");
+const authView = document.querySelector("#authView");
+const loginView = document.querySelector("#loginView");
+const signupView = document.querySelector("#signupView");
+const loginEmail = document.querySelector("#loginEmail");
+const loginPassword = document.querySelector("#loginPassword");
+const loginError = document.querySelector("#loginError");
+const loginButton = document.querySelector("#loginButton");
+const signupEmail = document.querySelector("#signupEmail");
+const signupPassword = document.querySelector("#signupPassword");
+const signupConfirmPassword = document.querySelector("#signupConfirmPassword");
+const signupError = document.querySelector("#signupError");
+const signupButton = document.querySelector("#signupButton");
+const showSignupButton = document.querySelector("#showSignupButton");
+const showLoginButton = document.querySelector("#showLoginButton");
+const mainApp = document.querySelector("#mainApp");
+const bottomNav = document.querySelector("#bottomNav");
 const homeHeading = document.querySelector("#homeHeading");
 const homeSubheading = document.querySelector("#homeSubheading");
+const homeMotivation = document.querySelector("#homeMotivation");
+const streakText = document.querySelector("#streakText");
+const dailyQuoteText = document.querySelector("#dailyQuoteText");
 const journeyCard = document.querySelector("#journeyCard");
 const homeProgress = document.querySelector("#homeProgress");
 const macroProgressList = document.querySelector("#macroProgressList");
@@ -149,7 +190,18 @@ const insightsLoading = document.querySelector("#insightsLoading");
 const insightsResult = document.querySelector("#insightsResult");
 const insightText = document.querySelector("#insightText");
 const factsGrid = document.querySelector("#factsGrid");
+const sizzleMessages = document.querySelector("#sizzleMessages");
+const sizzleForm = document.querySelector("#sizzleForm");
+const sizzleInput = document.querySelector("#sizzleInput");
+const clearSizzleChat = document.querySelector("#clearSizzleChat");
 const exploreGrid = document.querySelector("#exploreGrid");
+const settingsProfile = document.querySelector("#settingsProfile");
+const themeFiery = document.querySelector("#themeFiery");
+const themeOcean = document.querySelector("#themeOcean");
+const logoutConfirmMessage = document.querySelector("#logoutConfirmMessage");
+const settingsLogoutButton = document.querySelector("#settingsLogoutButton");
+const exportLogsButton = document.querySelector("#exportLogsButton");
+const resetAllDataButton = document.querySelector("#resetAllDataButton");
 const toast = document.querySelector("#toast");
 const onboardingOverlay = document.querySelector("#onboardingOverlay");
 const onboardingTrack = document.querySelector("#onboardingTrack");
@@ -169,16 +221,64 @@ let selectedMoods = {
   after: moods[2],
 };
 
-function readLogs() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
+let logsCache = [];
+let logoutArmed = false;
+let onboardingMode = "full";
+
+function getToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+function setAuth(token, userId, email = "") {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_ID_KEY, userId);
+  if (email) {
+    localStorage.setItem(EMAIL_KEY, email);
   }
 }
 
-function writeLogs(logs) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+function clearAuth() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_ID_KEY);
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(EMAIL_KEY);
+  localStorage.removeItem(SIZZLE_KEY);
+  logsCache = [];
+}
+
+function clearAllLocalData() {
+  localStorage.clear();
+  logsCache = [];
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+  const token = getToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  const response = await fetch(path, { ...options, headers });
+  if (response.status === 401) {
+    clearAuth();
+    showAuth("login");
+    throw new Error("Please log in again.");
+  }
+  return response;
+}
+
+function readLogs() {
+  return logsCache;
+}
+
+async function writeLogs(logs) {
+  logsCache = logs;
+  await saveLogsToServer();
+  if (streakText && dailyQuoteText) {
+    updateStreakDisplay();
+  }
 }
 
 function readUser() {
@@ -191,6 +291,50 @@ function readUser() {
 
 function writeUser(user) {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+function applyTheme(theme = "fiery") {
+  const selectedTheme = theme === "ocean" ? "ocean" : "fiery";
+  document.body.classList.toggle("theme-ocean", selectedTheme === "ocean");
+  localStorage.setItem(THEME_KEY, selectedTheme);
+  themeFiery?.classList.toggle("active", selectedTheme === "fiery");
+  themeOcean?.classList.toggle("active", selectedTheme === "ocean");
+}
+
+async function saveProfileToServer(profile) {
+  if (!getToken()) return;
+  await apiFetch("/api/profile/save", {
+    method: "POST",
+    body: JSON.stringify({ profile_data: profile }),
+  });
+}
+
+async function loadProfileFromServer() {
+  const response = await apiFetch("/api/profile/get");
+  if (!response.ok) return null;
+  const data = await response.json();
+  if (data.profile_data) {
+    writeUser(data.profile_data);
+  }
+  return data.profile_data;
+}
+
+async function saveLogsToServer() {
+  if (!getToken()) return;
+  await apiFetch("/api/logs/save", {
+    method: "POST",
+    body: JSON.stringify({ logs: logsCache }),
+  });
+}
+
+async function loadLogsFromServer() {
+  const response = await apiFetch("/api/logs/get");
+  if (!response.ok) {
+    logsCache = [];
+    return;
+  }
+  const data = await response.json();
+  logsCache = data.logs || [];
 }
 
 function calculateDailyCalories(profile) {
@@ -247,7 +391,11 @@ function getUserProfileForApi() {
     goal: user.goal,
     activity_level: user.activity_level,
     daily_calories: user.daily_calories,
+    body_type: user.body_type,
+    body_fat_range: user.body_fat_range,
     body_fat_mid: user.body_fat_mid,
+    target_body_fat_range: user.target_body_fat_range,
+    target_body_fat_mid: user.target_body_fat_mid,
   };
 }
 
@@ -289,6 +437,11 @@ function switchView(viewName) {
 
   if (viewName === "insights") {
     updateInsightsState();
+    renderSizzleMessages();
+  }
+
+  if (viewName === "settings") {
+    renderSettings();
   }
 
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -334,6 +487,55 @@ function isToday(timestamp) {
   return date.toDateString() === now.toDateString();
 }
 
+function dateKey(timestamp) {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getTodayKey() {
+  return dateKey(new Date().toISOString());
+}
+
+function getDailyQuote() {
+  const dayNumber = Math.floor(Date.now() / 86400000);
+  return dailyQuotes[dayNumber % dailyQuotes.length];
+}
+
+function calculateStreak(logs) {
+  const loggedDays = new Set(logs.map((log) => dateKey(log.timestamp)));
+  const cursor = new Date();
+  let streak = 0;
+
+  while (loggedDays.has(dateKey(cursor.toISOString()))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  localStorage.setItem(STREAK_KEY, String(streak));
+  return streak;
+}
+
+function updateStreakDisplay() {
+  const logs = readLogs();
+  const streak = calculateStreak(logs);
+  const hasLoggedToday = logs.some((log) => dateKey(log.timestamp) === getTodayKey());
+
+  if (!hasLoggedToday || streak === 0) {
+    streakText.textContent = "Start today's streak 🔥";
+  } else if (streak >= 30) {
+    streakText.textContent = `🔥 ${streak} days — this is who you are now`;
+  } else if (streak >= 7) {
+    streakText.textContent = `🔥 ${streak} day streak — you're on fire`;
+  } else {
+    streakText.textContent = `🔥 ${streak} day streak — keep it burning`;
+  }
+
+  dailyQuoteText.textContent = getDailyQuote();
+}
+
 function getMoodTrend(logs) {
   if (!logs.length) {
     return "Ready to begin";
@@ -352,6 +554,7 @@ function renderHomePersonalization() {
   if (!user) {
     homeHeading.textContent = "Food is fuel. Feelings matter.";
     homeSubheading.textContent = "Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.";
+    homeMotivation.classList.add("hidden-soft");
     homeProgress.classList.add("hidden-soft");
     journeyCard.classList.add("hidden-soft");
     profileCard.classList.add("hidden-soft");
@@ -360,6 +563,8 @@ function renderHomePersonalization() {
 
   homeHeading.textContent = `Hey ${user.name}! 🔥`;
   homeSubheading.textContent = getTimeGreeting();
+  homeMotivation.classList.remove("hidden-soft");
+  updateStreakDisplay();
   renderJourneyCard();
   renderHomeProgress();
   renderProfileCard();
@@ -376,34 +581,100 @@ function getBodyFatShape(mid) {
 }
 
 function getSilhouetteSvg(shape = 2, label = "body") {
-  const widths = [
-    { shoulder: 16, waist: 13, hip: 15 },
-    { shoulder: 19, waist: 15, hip: 17 },
-    { shoulder: 22, waist: 18, hip: 20 },
-    { shoulder: 24, waist: 21, hip: 23 },
-    { shoulder: 27, waist: 25, hip: 27 },
-    { shoulder: 30, waist: 29, hip: 30 },
-  ][shape] || { shoulder: 22, waist: 18, hip: 20 };
-  const leftShoulder = 50 - widths.shoulder;
-  const rightShoulder = 50 + widths.shoulder;
-  const leftWaist = 50 - widths.waist;
-  const rightWaist = 50 + widths.waist;
-  const leftHip = 50 - widths.hip;
-  const rightHip = 50 + widths.hip;
+  return getBodyFatSvg(shape, readUser()?.sex || onboardingSex?.value || "Male", label);
+}
 
+function svgDefs(id, colors = ["#FFD000", "#FF7000", "#FF2200"]) {
   return `
-    <svg viewBox="0 0 100 120" role="img" aria-label="${escapeHtml(label)}">
-      <defs>
-        <linearGradient id="bodyGrad${shape}" x1="50" y1="18" x2="50" y2="112" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#FFD700"/>
-          <stop offset="55%" stop-color="#FF8C00"/>
-          <stop offset="100%" stop-color="#FF4500"/>
-        </linearGradient>
-      </defs>
-      <circle cx="50" cy="16" r="10" fill="url(#bodyGrad${shape})"/>
-      <path d="M${leftShoulder} 34 C${leftWaist} 48 ${leftWaist} 70 ${leftHip} 92 C${leftHip + 7} 104 ${rightHip - 7} 104 ${rightHip} 92 C${rightWaist} 70 ${rightWaist} 48 ${rightShoulder} 34 C${rightShoulder - 8} 28 ${leftShoulder + 8} 28 ${leftShoulder} 34Z" fill="url(#bodyGrad${shape})"/>
-      <path d="M42 96 L38 116 M58 96 L62 116" stroke="#FF8C00" stroke-width="7" stroke-linecap="round"/>
-      <path d="M${leftShoulder + 2} 42 L20 68 M${rightShoulder - 2} 42 L80 68" stroke="#FF7000" stroke-width="6" stroke-linecap="round"/>
+    <defs>
+      <linearGradient id="${id}" x1="40" y1="8" x2="40" y2="118" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="${colors[0]}"/>
+        <stop offset="52%" stop-color="${colors[1]}"/>
+        <stop offset="100%" stop-color="${colors[2]}"/>
+      </linearGradient>
+    </defs>
+  `;
+}
+
+function getBodyTypeSvg(type) {
+  const id = `typeGrad${type}`;
+  if (type === "Ectomorph") {
+    return `
+      <svg viewBox="0 0 80 120" role="img" aria-label="Ectomorph body type">
+        ${svgDefs(id)}
+        <circle cx="40" cy="13" r="8" fill="url(#${id})"/>
+        <path d="M31 30 C32 24 48 24 49 30 L46 78 C45 89 35 89 34 78 Z" fill="url(#${id})"/>
+        <path d="M31 35 L20 74 M49 35 L60 74" stroke="#FF8C00" stroke-width="5" stroke-linecap="round"/>
+        <path d="M35 82 L30 116 M45 82 L50 116" stroke="#FF8C00" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+    `;
+  }
+  if (type === "Mesomorph") {
+    return `
+      <svg viewBox="0 0 80 120" role="img" aria-label="Mesomorph body type">
+        ${svgDefs(id)}
+        <circle cx="40" cy="13" r="9" fill="url(#${id})"/>
+        <path d="M20 32 C27 22 53 22 60 32 L51 78 C49 91 31 91 29 78 Z" fill="url(#${id})"/>
+        <path d="M22 36 C15 47 14 62 20 74 M58 36 C65 47 66 62 60 74" stroke="#FF7000" stroke-width="8" stroke-linecap="round"/>
+        <path d="M34 82 L29 116 M46 82 L51 116" stroke="#FF8C00" stroke-width="7" stroke-linecap="round"/>
+        <path d="M31 43 H49 M34 53 H46 M35 63 H45 M40 43 V72" stroke="#4A1600" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
+      </svg>
+    `;
+  }
+  return `
+    <svg viewBox="0 0 80 120" role="img" aria-label="Endomorph body type">
+      ${svgDefs(id, ["#FFB000", "#FF7A00", "#C65300"])}
+      <circle cx="40" cy="14" r="10" fill="url(#${id})"/>
+      <path d="M18 35 C22 22 58 22 62 35 C70 60 63 91 40 95 C17 91 10 60 18 35Z" fill="url(#${id})"/>
+      <path d="M20 42 C12 55 12 70 20 82 M60 42 C68 55 68 70 60 82" stroke="#FF7A00" stroke-width="9" stroke-linecap="round"/>
+      <path d="M33 91 L28 116 M47 91 L52 116" stroke="#FF8C00" stroke-width="9" stroke-linecap="round"/>
+    </svg>
+  `;
+}
+
+function getBodyFatSvg(shape = 2, sex = "Male", label = "body") {
+  const female = sex === "Female";
+  const id = `bfGrad${sex}${shape}`.replace(/\W/g, "");
+  const palette = shape <= 1
+    ? ["#FFD000", "#FF7000", "#FF2200"]
+    : shape <= 3
+      ? ["#FFC247", "#FF8C00", "#D85B00"]
+      : ["#D98D2B", "#B96516", "#7C3F10"];
+  const maleBodies = [
+    "M17 31 L28 24 H52 L63 31 L54 78 L47 94 H33 L26 78 Z",
+    "M19 32 C26 24 54 24 61 32 L53 78 C51 91 29 91 27 78 Z",
+    "M21 34 C27 27 53 27 59 34 L56 79 C52 94 28 94 24 79 Z",
+    "M19 35 C24 26 56 26 61 35 C67 58 61 88 40 92 C19 88 13 58 19 35Z",
+    "M17 36 C20 25 60 25 63 36 C72 62 64 96 40 99 C16 96 8 62 17 36Z",
+    "M14 38 C17 24 63 24 66 38 C77 66 67 103 40 106 C13 103 3 66 14 38Z",
+  ];
+  const femaleBodies = [
+    "M23 33 C29 24 51 24 57 33 L52 63 C61 72 60 90 47 95 H33 C20 90 19 72 28 63 Z",
+    "M22 33 C28 25 52 25 58 33 L53 65 C62 75 59 92 47 96 H33 C21 92 18 75 27 65 Z",
+    "M21 34 C27 27 53 27 59 34 C57 48 55 61 58 73 C63 89 53 100 40 100 C27 100 17 89 22 73 C25 61 23 48 21 34Z",
+    "M19 36 C24 27 56 27 61 36 C65 53 64 74 58 89 C52 101 28 101 22 89 C16 74 15 53 19 36Z",
+    "M17 37 C21 27 59 27 63 37 C71 61 66 96 40 102 C14 96 9 61 17 37Z",
+    "M14 39 C17 26 63 26 66 39 C77 68 69 106 40 109 C11 106 3 68 14 39Z",
+  ];
+  const bodyPath = female ? femaleBodies[shape] : maleBodies[shape];
+  const definition = shape === 0
+    ? `<path d="M30 42 H50 M32 53 H48 M34 64 H46 M40 42 V76 M27 37 C32 42 35 42 39 38 M41 38 C45 42 48 42 53 37 M28 78 L52 78" stroke="#451200" stroke-width="2" stroke-linecap="round" opacity="0.85"/>`
+    : shape === 1
+      ? `<path d="M31 43 H49 M34 56 H46 M35 67 H45 M40 45 V73 M29 38 C34 42 37 42 39 39 M41 39 C43 42 46 42 51 38" stroke="#552000" stroke-width="1.7" stroke-linecap="round" opacity="0.62"/>`
+      : shape === 2
+        ? `<path d="M30 43 C35 47 45 47 50 43" stroke="#663000" stroke-width="1.6" stroke-linecap="round" opacity="0.4"/>`
+        : "";
+  const armWidth = shape <= 1 ? 7 : shape <= 3 ? 8 : 10;
+  const legWidth = shape <= 2 ? 7 : shape <= 4 ? 9 : 11;
+  return `
+    <svg viewBox="0 0 80 120" role="img" aria-label="${escapeHtml(label)} body fat reference">
+      ${svgDefs(id, palette)}
+      <circle cx="40" cy="13" r="${shape >= 4 ? 10 : 9}" fill="url(#${id})"/>
+      <path d="${bodyPath}" fill="url(#${id})"/>
+      <path d="M22 38 C12 52 12 69 21 82 M58 38 C68 52 68 69 59 82" stroke="${palette[1]}" stroke-width="${armWidth}" stroke-linecap="round"/>
+      <path d="M33 92 L29 116 M47 92 L51 116" stroke="${palette[1]}" stroke-width="${legWidth}" stroke-linecap="round"/>
+      ${definition}
+      ${shape >= 3 ? `<path d="M28 61 C34 69 46 69 52 61" stroke="#6B2D00" stroke-width="2" stroke-linecap="round" opacity="0.38"/>` : ""}
     </svg>
   `;
 }
@@ -452,6 +723,31 @@ function renderProfileCard() {
     <button id="editProfileButton" class="profile-edit" type="button">Edit</button>
   `;
   profileCard.classList.remove("hidden-soft");
+}
+
+function renderSettings() {
+  const user = readUser() || {};
+  const email = localStorage.getItem(EMAIL_KEY) || "Signed in";
+  settingsProfile.innerHTML = `
+    <div class="settings-section-head">
+      <h3>Profile</h3>
+      <p>Your FuelFlow plan at a glance.</p>
+    </div>
+    <div class="settings-grid">
+      <div class="settings-item">Name <span>${escapeHtml(user.name || "Not set")}</span></div>
+      <div class="settings-item">Email <span>${escapeHtml(email)}</span></div>
+      <div class="settings-item">Goal <span>${escapeHtml(user.goal || "Not set")}</span></div>
+      <div class="settings-item">Body type <span>${escapeHtml(user.body_type || "Not set")}</span></div>
+      <div class="settings-item">Current body fat <span>${escapeHtml(user.body_fat_range || "Not set")}</span></div>
+      <div class="settings-item">Target body fat <span>${escapeHtml(user.target_body_fat_range || "Not set")}</span></div>
+      <div class="settings-item">Daily calorie target <span>${escapeHtml(user.daily_calories || "Not set")} kcal</span></div>
+    </div>
+    <div class="settings-actions">
+      <button id="settingsEditProfile" class="secondary-button" type="button">Edit Profile</button>
+      <button id="settingsEditGoals" class="secondary-button" type="button">Edit Goals</button>
+    </div>
+  `;
+  applyTheme(localStorage.getItem(THEME_KEY) || "fiery");
 }
 
 function renderHomeProgress() {
@@ -535,7 +831,11 @@ function renderEntryCard(log) {
             ${log.drinks ? `<span class="tag-pill">${escapeHtml(log.drinks)} drink${log.drinks > 1 ? "s" : ""}</span>` : ""}
           </div>
         </div>
-        <span class="entry-time">${escapeHtml(time)}</span>
+        <div class="entry-actions">
+          <span class="entry-time">${escapeHtml(time)}</span>
+          <button class="icon-button entry-edit" type="button" aria-label="Edit meal">✎</button>
+          <button class="icon-button entry-delete" type="button" aria-label="Delete meal">🗑️</button>
+        </div>
       </div>
       <div class="energy-track" aria-label="Energy ${energy} out of 10">
         <div class="energy-fill" style="width: ${energy * 10}%"></div>
@@ -546,19 +846,53 @@ function renderEntryCard(log) {
         <input class="eaten-checkbox" type="checkbox" ${log.eaten ? "checked" : ""}>
         <span>${log.eaten ? '<span class="checkmark">✓</span> Eaten' : "Eaten"}</span>
       </label>
+      <div class="delete-confirm hidden-soft">
+        <span>Delete this meal?</span>
+        <div class="confirm-actions">
+          <button class="mini-danger delete-yes" type="button">Yes</button>
+          <button class="mini-muted delete-no" type="button">No</button>
+        </div>
+      </div>
+      <form class="edit-log-form hidden-soft">
+        <div class="form-row">
+          <label>
+            <span>Meal name</span>
+            <input name="editMealName" type="text" value="${escapeHtml(log.mealName)}" required>
+          </label>
+          <label>
+            <span>Meal type</span>
+            <select name="editMealType">
+              ${["Breakfast", "Lunch", "Dinner", "Snack", "Drink"].map((type) => `<option ${log.mealType === type ? "selected" : ""}>${type}</option>`).join("")}
+            </select>
+          </label>
+        </div>
+        <label>
+          <span>Energy level: ${energy}/10</span>
+          <input name="editEnergy" type="range" min="1" max="10" value="${energy}">
+        </label>
+        <label>
+          <span>Notes</span>
+          <textarea name="editNotes" rows="3">${escapeHtml(log.notes || "")}</textarea>
+        </label>
+        <div class="edit-actions">
+          <button class="gradient-button compact edit-save" type="submit">Save</button>
+          <button class="secondary-button compact edit-cancel" type="button">Cancel</button>
+        </div>
+      </form>
     </article>
   `;
 }
 
-function toggleEaten(logId, checked) {
+async function toggleEaten(logId, checked) {
   const logs = readLogs().map((log) => {
     return log.id === logId ? { ...log, eaten: checked } : log;
   });
-  writeLogs(logs);
+  await writeLogs(logs);
   renderToday();
+  renderHomeProgress();
 }
 
-function quickAdd(name) {
+async function quickAdd(name) {
   const logs = readLogs();
   logs.push({
     id: crypto.randomUUID(),
@@ -574,8 +908,32 @@ function quickAdd(name) {
     drinks: 0,
     eaten: false,
   });
-  writeLogs(logs);
+  await writeLogs(logs);
   renderToday();
+}
+
+async function deleteLog(logId) {
+  const logs = readLogs().filter((log) => log.id !== logId);
+  await writeLogs(logs);
+  renderToday();
+  renderHomeProgress();
+}
+
+async function updateLog(logId, form) {
+  const formData = new FormData(form);
+  const logs = readLogs().map((log) => {
+    if (log.id !== logId) return log;
+    return {
+      ...log,
+      mealName: formData.get("editMealName").trim(),
+      mealType: formData.get("editMealType"),
+      energy: Number(formData.get("editEnergy")),
+      notes: formData.get("editNotes").trim(),
+    };
+  });
+  await writeLogs(logs);
+  renderToday();
+  renderHomeProgress();
 }
 
 function updateInsightsState() {
@@ -584,6 +942,63 @@ function updateInsightsState() {
   if (readLogs().length >= 3) {
     insightsHint.classList.add("hidden-soft");
   }
+}
+
+function readSizzleHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(SIZZLE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSizzleHistory(history) {
+  localStorage.setItem(SIZZLE_KEY, JSON.stringify(history.slice(-20)));
+}
+
+function renderSizzleMessages(extraMessages = []) {
+  const intro = {
+    role: "assistant",
+    content: "Hey! I'm Sizzle 🔥 — your personal food and nutrition AI. Ask me anything about what you eat, your goals, recipes, or how to feel better. I'm here to help, not judge.",
+  };
+  const messages = [intro, ...readSizzleHistory(), ...extraMessages];
+  sizzleMessages.innerHTML = messages.map((message) => {
+    const isUser = message.role === "user";
+    return `
+      <div class="chat-message ${isUser ? "user" : "assistant"}">
+        <span class="chat-name">${isUser ? "You" : "🔥 Sizzle"}</span>
+        <div class="chat-bubble">${escapeHtml(message.content)}</div>
+      </div>
+    `;
+  }).join("");
+  sizzleMessages.scrollTop = sizzleMessages.scrollHeight;
+}
+
+async function sendSizzleMessage(message) {
+  const history = readSizzleHistory();
+  const nextHistory = [...history, { role: "user", content: message }];
+  writeSizzleHistory(nextHistory);
+  renderSizzleMessages([{ role: "assistant", content: "Sizzle is thinking... 🔥" }]);
+
+  try {
+    const response = await apiFetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        message,
+        history: nextHistory.slice(-6),
+        user_profile: getUserProfileForApi(),
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "Sizzle paused for a second.");
+    }
+    const data = await response.json();
+    writeSizzleHistory([...nextHistory, { role: "assistant", content: data.reply || "I am here with you. Ask me one specific thing and we will work through it." }]);
+  } catch (error) {
+    writeSizzleHistory([...nextHistory, { role: "assistant", content: error.message || "I hit a pause, but I am still here. Try asking that again in a simpler way." }]);
+  }
+  renderSizzleMessages();
 }
 
 async function getInsights() {
@@ -601,9 +1016,8 @@ async function getInsights() {
   insightsResult.classList.add("hidden-soft");
 
   try {
-    const response = await fetch("/api/get-insights", {
+    const response = await apiFetch("/api/get-insights", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ logs, user_profile: getUserProfileForApi() }),
     });
 
@@ -660,12 +1074,24 @@ let onboardingStep = 0;
 let onboardingSelections = {
   goal: "Lose weight",
   activity_level: "Sedentary",
-  body_type: "Ectomorph",
+  body_type: "",
   body_fat_range: "",
   body_fat_mid: 0,
   target_body_fat_range: "",
   target_body_fat_mid: 0,
 };
+
+function getDefaultOnboardingSelections() {
+  return {
+    goal: "Lose weight",
+    activity_level: "Sedentary",
+    body_type: "",
+    body_fat_range: "",
+    body_fat_mid: 0,
+    target_body_fat_range: "",
+    target_body_fat_mid: 0,
+  };
+}
 
 function setOnboardingStep(step) {
   onboardingStep = step;
@@ -679,21 +1105,82 @@ function setOnboardingStep(step) {
   if (step === 5) {
     renderTargetBodyFatCards();
   }
+  updateOnboardingButtons();
+}
+
+function updateOnboardingButtons() {
+  document.querySelectorAll(".onboarding-step").forEach((step) => {
+    const stepIndex = Number(step.dataset.step);
+    const nextButton = step.querySelector(".onboarding-next");
+    const finishButton = step.querySelector("#finishOnboarding");
+    if (nextButton && stepIndex === 3) {
+      nextButton.disabled = !onboardingSelections.body_type;
+    }
+    if (nextButton && stepIndex === 4) {
+      nextButton.disabled = !onboardingSelections.body_fat_range;
+    }
+    if (finishButton) {
+      finishButton.disabled = !onboardingSelections.target_body_fat_range;
+    }
+  });
 }
 
 function showOnboardingIfNeeded() {
   if (!readUser()) {
-    onboardingOverlay.classList.remove("hidden-soft");
-    setOnboardingStep(0);
+    startOnboarding(0, "full");
   }
+}
+
+function fillOnboardingFromProfile(profile = readUser()) {
+  if (!profile) {
+    onboardingSelections = getDefaultOnboardingSelections();
+    onboardingName.value = "";
+    onboardingAge.value = "";
+    onboardingWeight.value = "";
+    onboardingHeight.value = "";
+    onboardingSex.value = "Male";
+    activityDescription.textContent = activityDescriptions.Sedentary;
+    document.querySelectorAll(".onboarding-pills").forEach((group) => {
+      group.querySelectorAll(".mood-pill").forEach((button) => {
+        button.classList.toggle("active", button.dataset.value === onboardingSelections[group.dataset.onboardingGroup]);
+      });
+    });
+    return;
+  }
+  onboardingName.value = profile.name || "";
+  onboardingAge.value = profile.age || "";
+  onboardingWeight.value = profile.weight_kg || "";
+  onboardingHeight.value = profile.height_cm || "";
+  onboardingSex.value = profile.sex || "Male";
+  onboardingSelections = {
+    goal: profile.goal || "Lose weight",
+    activity_level: profile.activity_level || "Sedentary",
+    body_type: profile.body_type || "",
+    body_fat_range: profile.body_fat_range || "",
+    body_fat_mid: Number(profile.body_fat_mid || 0),
+    target_body_fat_range: profile.target_body_fat_range || "",
+    target_body_fat_mid: Number(profile.target_body_fat_mid || 0),
+  };
+  document.querySelectorAll(".onboarding-pills").forEach((group) => {
+    group.querySelectorAll(".mood-pill").forEach((button) => {
+      button.classList.toggle("active", button.dataset.value === onboardingSelections[group.dataset.onboardingGroup]);
+    });
+  });
+  activityDescription.textContent = activityDescriptions[onboardingSelections.activity_level];
+}
+
+function startOnboarding(step = 0, mode = "full") {
+  onboardingMode = mode;
+  fillOnboardingFromProfile();
+  onboardingOverlay.classList.remove("hidden-soft");
+  setOnboardingStep(step);
 }
 
 function renderBodyTypeCards() {
   bodyTypeCards.innerHTML = bodyTypes.map((type) => {
-    const shape = type.shape === "lean" ? 0 : type.shape === "athletic" ? 1 : 4;
     return `
       <button class="visual-card ${onboardingSelections.body_type === type.key ? "selected" : ""}" type="button" data-body-type="${escapeHtml(type.key)}">
-        ${getSilhouetteSvg(shape, type.key)}
+        ${getBodyTypeSvg(type.key)}
         <strong>${escapeHtml(type.key)}</strong>
         <span>${escapeHtml(type.description)}</span>
       </button>
@@ -707,13 +1194,9 @@ function getBodyFatOptions() {
 
 function renderBodyFatCards() {
   const options = getBodyFatOptions();
-  if (!onboardingSelections.body_fat_range) {
-    onboardingSelections.body_fat_range = options[2].range;
-    onboardingSelections.body_fat_mid = options[2].mid;
-  }
   bodyFatCards.innerHTML = options.map((option) => `
     <button class="visual-card ${onboardingSelections.body_fat_range === option.range ? "selected" : ""}" type="button" data-body-fat-range="${escapeHtml(option.range)}" data-body-fat-mid="${escapeHtml(option.mid)}">
-      ${getSilhouetteSvg(option.shape, option.label)}
+      ${getBodyFatSvg(option.shape, onboardingSex.value, option.label)}
       <strong>${escapeHtml(option.label)}</strong>
       <small>${escapeHtml(option.range)}</small>
     </button>
@@ -736,21 +1219,15 @@ function getAllowedTargetIndexes(options) {
 
 function renderTargetBodyFatCards() {
   const options = getBodyFatOptions();
-  const allowed = getAllowedTargetIndexes(options);
   if (onboardingSelections.goal === "Maintain") {
     onboardingSelections.target_body_fat_range = onboardingSelections.body_fat_range || options[2].range;
     onboardingSelections.target_body_fat_mid = onboardingSelections.body_fat_mid || options[2].mid;
-  } else if (!onboardingSelections.target_body_fat_range || !allowed.some((index) => options[index].range === onboardingSelections.target_body_fat_range)) {
-    const defaultOption = options[allowed[0] ?? 2];
-    onboardingSelections.target_body_fat_range = defaultOption.range;
-    onboardingSelections.target_body_fat_mid = defaultOption.mid;
   }
 
   targetBodyFatCards.innerHTML = options.map((option, index) => {
-    const disabled = !allowed.includes(index);
     return `
-      <button class="visual-card ${onboardingSelections.target_body_fat_range === option.range ? "selected" : ""} ${disabled ? "disabled" : ""}" type="button" data-target-body-fat-range="${escapeHtml(option.range)}" data-target-body-fat-mid="${escapeHtml(option.mid)}" ${disabled ? "disabled" : ""}>
-        ${getSilhouetteSvg(option.shape, option.label)}
+      <button class="visual-card ${onboardingSelections.target_body_fat_range === option.range ? "selected" : ""}" type="button" data-target-body-fat-range="${escapeHtml(option.range)}" data-target-body-fat-mid="${escapeHtml(option.mid)}">
+        ${getBodyFatSvg(option.shape, onboardingSex.value, option.label)}
         <strong>${escapeHtml(option.label)}</strong>
         <small>${escapeHtml(option.range)}</small>
       </button>
@@ -758,36 +1235,43 @@ function renderTargetBodyFatCards() {
   }).join("");
 }
 
-function finishUserOnboarding() {
+async function finishUserOnboarding() {
+  const existingProfile = readUser() || {};
   const profile = {
-    name: onboardingName.value.trim() || "friend",
-    age: Number(onboardingAge.value || 0),
-    weight_kg: Number(onboardingWeight.value || 0),
-    height_cm: Number(onboardingHeight.value || 0),
-    sex: onboardingSex.value,
+    ...existingProfile,
+    name: onboardingName.value.trim() || existingProfile.name || "friend",
+    age: Number(onboardingAge.value || existingProfile.age || 0),
+    weight_kg: Number(onboardingWeight.value || existingProfile.weight_kg || 0),
+    height_cm: Number(onboardingHeight.value || existingProfile.height_cm || 0),
+    sex: onboardingSex.value || existingProfile.sex || "Male",
     goal: onboardingSelections.goal,
     activity_level: onboardingSelections.activity_level,
-    body_type: onboardingSelections.body_type,
-    body_fat_range: onboardingSelections.body_fat_range,
-    body_fat_mid: onboardingSelections.body_fat_mid,
-    target_body_fat_range: onboardingSelections.target_body_fat_range,
-    target_body_fat_mid: onboardingSelections.target_body_fat_mid,
+    body_type: onboardingSelections.body_type || existingProfile.body_type || "",
+    body_fat_range: onboardingSelections.body_fat_range || existingProfile.body_fat_range || "",
+    body_fat_mid: onboardingSelections.body_fat_mid || existingProfile.body_fat_mid || 0,
+    target_body_fat_range: onboardingSelections.target_body_fat_range || existingProfile.target_body_fat_range || "",
+    target_body_fat_mid: onboardingSelections.target_body_fat_mid || existingProfile.target_body_fat_mid || 0,
     meals_per_day: DEFAULT_MEALS_PER_DAY,
   };
   profile.daily_calories = calculateDailyCalories(profile);
   writeUser(profile);
+  await saveProfileToServer(profile);
   onboardingOverlay.classList.add("hidden-soft");
+  onboardingMode = "full";
   renderHomePersonalization();
+  renderSettings();
 }
 
 function renderFoodInsightCard(log, insight) {
   const isGood = Boolean(insight.good_for_goal);
+  const motivation = getMotivationalNudge();
   foodInsightCard.classList.remove("hidden-soft", "fading");
   foodInsightCard.innerHTML = `
     <h3>${escapeHtml(log.mealName)}</h3>
     <p>${escapeHtml(insight.what_it_does || "This meal gives your body useful energy and helps you notice what supports your day.")}</p>
     <span class="goal-badge ${isGood ? "good" : "okay"}">${isGood ? "Great for your goal" : "Okay for your goal"}</span>
     <p class="up-next">Up next: ${escapeHtml(insight.next_suggestion || "Add water and a protein-rich option later.")}</p>
+    <p class="motivation-line">${escapeHtml(motivation)}</p>
   `;
 
   window.setTimeout(() => {
@@ -797,6 +1281,26 @@ function renderFoodInsightCard(log, insight) {
     foodInsightCard.classList.add("hidden-soft");
     foodInsightCard.classList.remove("fading");
   }, 8000);
+}
+
+function getMotivationalNudge() {
+  const hour = new Date().getHours();
+  let timeMessage = "Midday check-in done. You're showing up for yourself.";
+  if (hour < 10) {
+    timeMessage = "Starting the day with intention. That's how transformations begin.";
+  } else if (hour >= 18 && hour < 22) {
+    timeMessage = "Evening awareness is where most people fall short. You're not most people.";
+  } else if (hour >= 22 || hour < 4) {
+    timeMessage = "Late night, still tracking. That's discipline showing up.";
+  }
+
+  const goal = readUser()?.goal || "";
+  const goalMessages = {
+    "Gain muscle": "Every meal is a building block. Your body is listening.",
+    "Lose weight": "Awareness is the first step. You're already ahead.",
+    "Maintain": "Consistency is the hardest thing. You're nailing it.",
+  };
+  return `${timeMessage} ${goalMessages[goal] || ""}`.trim();
 }
 
 async function getFoodInsight(log) {
@@ -826,7 +1330,142 @@ async function getFoodInsight(log) {
   }
 }
 
+function showAuth(mode) {
+  authView.classList.remove("hidden-soft");
+  mainApp.classList.add("hidden-soft");
+  bottomNav.classList.add("hidden-soft");
+  onboardingOverlay.classList.add("hidden-soft");
+  loginView.classList.toggle("hidden-soft", mode !== "login");
+  signupView.classList.toggle("hidden-soft", mode !== "signup");
+}
+
+function showMainApp() {
+  authView.classList.add("hidden-soft");
+  mainApp.classList.remove("hidden-soft");
+  bottomNav.classList.remove("hidden-soft");
+}
+
+async function completeAuthenticatedLoad(profile = null) {
+  if (profile) {
+    writeUser(profile);
+  } else {
+    await loadProfileFromServer();
+  }
+  await loadLogsFromServer();
+  showMainApp();
+  renderToday();
+  renderHomePersonalization();
+  updateInsightsState();
+  renderSizzleMessages();
+  renderSettings();
+  if (!readUser()) {
+    startOnboarding(0, "full");
+  }
+}
+
+async function handleAuthResponse(response, errorEl) {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || "Something went wrong.");
+  }
+  const email = (loginEmail.value || signupEmail.value || "").trim().toLowerCase();
+  setAuth(data.token, data.user_id, email);
+  if (data.has_profile) {
+    await completeAuthenticatedLoad();
+  } else {
+    await loadLogsFromServer();
+    localStorage.removeItem(USER_KEY);
+    showMainApp();
+    renderToday();
+    renderHomePersonalization();
+    updateInsightsState();
+    startOnboarding(0, "full");
+  }
+  errorEl.textContent = "";
+}
+
+async function loginUser() {
+  loginError.textContent = "";
+  loginButton.disabled = true;
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: loginEmail.value.trim(),
+        password: loginPassword.value,
+      }),
+    });
+    await handleAuthResponse(response, loginError);
+  } catch (error) {
+    loginError.textContent = error.message;
+  } finally {
+    loginButton.disabled = false;
+  }
+}
+
+async function signupUser() {
+  signupError.textContent = "";
+  if (signupPassword.value !== signupConfirmPassword.value) {
+    signupError.textContent = "Passwords do not match.";
+    return;
+  }
+  signupButton.disabled = true;
+  try {
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: signupEmail.value.trim(),
+        password: signupPassword.value,
+      }),
+    });
+    await handleAuthResponse(response, signupError);
+  } catch (error) {
+    signupError.textContent = error.message;
+  } finally {
+    signupButton.disabled = false;
+  }
+}
+
+async function verifyExistingSession() {
+  if (!getToken()) {
+    showAuth("login");
+    return;
+  }
+  try {
+    const response = await apiFetch("/api/auth/me");
+    if (!response.ok) {
+      throw new Error("Session expired.");
+    }
+    const data = await response.json();
+    if (data.user?.email) {
+      localStorage.setItem(EMAIL_KEY, data.user.email);
+    }
+    if (data.profile) {
+      writeUser(data.profile);
+    } else {
+      localStorage.removeItem(USER_KEY);
+    }
+    await completeAuthenticatedLoad(data.profile);
+  } catch {
+    clearAuth();
+    showAuth("login");
+  }
+}
+
 function bindEvents() {
+  showSignupButton.addEventListener("click", () => showAuth("signup"));
+  showLoginButton.addEventListener("click", () => showAuth("login"));
+  loginButton.addEventListener("click", loginUser);
+  signupButton.addEventListener("click", signupUser);
+  loginPassword.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") loginUser();
+  });
+  signupConfirmPassword.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") signupUser();
+  });
+
   navButtons.forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.navTarget));
   });
@@ -862,6 +1501,7 @@ function bindEvents() {
         onboardingSelections.target_body_fat_range = "";
         onboardingSelections.target_body_fat_mid = 0;
       }
+      updateOnboardingButtons();
       return;
     }
 
@@ -869,6 +1509,7 @@ function bindEvents() {
     if (bodyTypeCard) {
       onboardingSelections.body_type = bodyTypeCard.dataset.bodyType;
       renderBodyTypeCards();
+      updateOnboardingButtons();
       return;
     }
 
@@ -879,31 +1520,35 @@ function bindEvents() {
       onboardingSelections.target_body_fat_range = "";
       onboardingSelections.target_body_fat_mid = 0;
       renderBodyFatCards();
+      updateOnboardingButtons();
       return;
     }
 
     const targetBodyFatCard = event.target.closest("[data-target-body-fat-range]");
-    if (targetBodyFatCard && !targetBodyFatCard.disabled) {
+    if (targetBodyFatCard) {
       onboardingSelections.target_body_fat_range = targetBodyFatCard.dataset.targetBodyFatRange;
       onboardingSelections.target_body_fat_mid = Number(targetBodyFatCard.dataset.targetBodyFatMid);
       renderTargetBodyFatCards();
+      updateOnboardingButtons();
       return;
     }
 
     const editProfileButton = event.target.closest("#editProfileButton");
     if (editProfileButton) {
-      localStorage.removeItem(USER_KEY);
-      onboardingSelections = {
-        goal: "Lose weight",
-        activity_level: "Sedentary",
-        body_type: "Ectomorph",
-        body_fat_range: "",
-        body_fat_mid: 0,
-        target_body_fat_range: "",
-        target_body_fat_mid: 0,
-      };
-      renderHomePersonalization();
-      showOnboardingIfNeeded();
+      startOnboarding(0, "full");
+      return;
+    }
+
+    const settingsEditProfile = event.target.closest("#settingsEditProfile");
+    if (settingsEditProfile) {
+      startOnboarding(0, "full");
+      return;
+    }
+
+    const settingsEditGoals = event.target.closest("#settingsEditGoals");
+    if (settingsEditGoals) {
+      startOnboarding(2, "goals");
+      return;
     }
   });
 
@@ -922,14 +1567,15 @@ function bindEvents() {
     onboardingSelections.target_body_fat_mid = 0;
     renderBodyFatCards();
     renderTargetBodyFatCards();
+    updateOnboardingButtons();
   });
 
-  mealForm.addEventListener("submit", (event) => {
+  mealForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const log = createLogFromForm(new FormData(mealForm));
     const logs = readLogs();
     logs.push(log);
-    writeLogs(logs);
+    await writeLogs(logs);
     mealForm.reset();
     energyRange.value = 7;
     energyValue.textContent = "7";
@@ -952,15 +1598,54 @@ function bindEvents() {
     }
   });
 
+  todayList.addEventListener("click", (event) => {
+    const card = event.target.closest(".entry-card");
+    if (!card) return;
+
+    if (event.target.closest(".entry-delete")) {
+      card.querySelector(".delete-confirm").classList.remove("hidden-soft");
+      card.querySelector(".edit-log-form").classList.add("hidden-soft");
+      return;
+    }
+
+    if (event.target.closest(".delete-no")) {
+      card.querySelector(".delete-confirm").classList.add("hidden-soft");
+      return;
+    }
+
+    if (event.target.closest(".delete-yes")) {
+      deleteLog(card.dataset.logId);
+      return;
+    }
+
+    if (event.target.closest(".entry-edit")) {
+      card.querySelector(".edit-log-form").classList.toggle("hidden-soft");
+      card.querySelector(".delete-confirm").classList.add("hidden-soft");
+      return;
+    }
+
+    if (event.target.closest(".edit-cancel")) {
+      card.querySelector(".edit-log-form").classList.add("hidden-soft");
+    }
+  });
+
+  todayList.addEventListener("submit", (event) => {
+    if (event.target.classList.contains("edit-log-form")) {
+      event.preventDefault();
+      const card = event.target.closest(".entry-card");
+      updateLog(card.dataset.logId, event.target);
+    }
+  });
+
   quickAddToggle.addEventListener("click", () => {
     quickAddForm.classList.toggle("hidden-soft");
   });
 
-  quickAddForm.addEventListener("submit", (event) => {
+  quickAddForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const name = new FormData(quickAddForm).get("quickName").trim();
     if (name) {
-      quickAdd(name);
+      await quickAdd(name);
       quickAddForm.reset();
       quickAddForm.classList.add("hidden-soft");
       showToast("Saved. Small notes count too.");
@@ -969,8 +1654,56 @@ function bindEvents() {
 
   insightsButton.addEventListener("click", getInsights);
 
+  sizzleForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const message = sizzleInput.value.trim();
+    if (!message) return;
+    sizzleInput.value = "";
+    await sendSizzleMessage(message);
+  });
+
+  clearSizzleChat.addEventListener("click", () => {
+    localStorage.removeItem(SIZZLE_KEY);
+    renderSizzleMessages();
+  });
+
+  themeFiery.addEventListener("click", () => applyTheme("fiery"));
+  themeOcean.addEventListener("click", () => applyTheme("ocean"));
+
+  settingsLogoutButton.addEventListener("click", () => {
+    if (!logoutArmed) {
+      logoutArmed = true;
+      logoutConfirmMessage.classList.remove("hidden-soft");
+      window.setTimeout(() => {
+        logoutArmed = false;
+        logoutConfirmMessage.classList.add("hidden-soft");
+      }, 5000);
+      return;
+    }
+    clearAuth();
+    showAuth("login");
+  });
+
+  resetAllDataButton.addEventListener("click", () => {
+    clearAllLocalData();
+    showAuth("login");
+  });
+
+  exportLogsButton.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(readLogs(), null, 2)], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "fuelflow_logs.json";
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+
   document.querySelectorAll(".onboarding-next").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
+      if (onboardingMode === "goals" && onboardingStep === 2) {
+        await finishUserOnboarding();
+        return;
+      }
       setOnboardingStep(Math.min(5, onboardingStep + 1));
     });
   });
@@ -978,15 +1711,14 @@ function bindEvents() {
   finishOnboarding.addEventListener("click", finishUserOnboarding);
 }
 
-function init() {
+async function init() {
+  applyTheme(localStorage.getItem(THEME_KEY) || "fiery");
   quoteText.textContent = randomItem(quotes);
   renderMoodGroups();
   renderExplore();
-  renderToday();
-  renderHomePersonalization();
-  updateInsightsState();
+  renderSizzleMessages();
   bindEvents();
-  showOnboardingIfNeeded();
+  await verifyExistingSession();
 }
 
 init();
