@@ -10,6 +10,7 @@ import httpx
 import jwt
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -419,6 +420,16 @@ Return only your reply text."""
         return {
             "reply": "I hit a little pause there, but here is a steady place to start: pair protein, fiber-rich carbs, and water when you can. Tell me what you ate or what your goal is, and I can help you make the next choice feel easier.",
         }
+
+
+@app.get("/")
+async def landing_page() -> FileResponse:
+    return FileResponse("static/landing.html")
+
+
+@app.get("/app")
+async def app_page() -> FileResponse:
+    return FileResponse("static/index.html")
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

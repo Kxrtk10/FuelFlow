@@ -1340,6 +1340,9 @@ function showAuth(mode) {
 }
 
 function showMainApp() {
+  if (window.location.pathname !== "/app") {
+    window.history.replaceState(null, "", "/app");
+  }
   authView.classList.add("hidden-soft");
   mainApp.classList.remove("hidden-soft");
   bottomNav.classList.remove("hidden-soft");
