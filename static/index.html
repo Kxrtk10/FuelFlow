@@ -302,6 +302,102 @@
           <div id="exploreGrid" class="explore-grid"></div>
         </section>
 
+        <section id="planView" class="view" data-view="plan">
+          <div id="planSetup" class="meal-plan-setup">
+            <div class="section-heading">
+              <p class="eyebrow flame">Personalized nutrition</p>
+              <h2>Build Your Plan 🔥</h2>
+              <p>Tell us a bit more and we'll build your perfect week</p>
+            </div>
+
+            <form id="mealPlanForm" class="card form-card">
+              <fieldset>
+                <legend>Plan type</legend>
+                <div class="onboarding-pills plan-pills" data-plan-group="plan_type">
+                  <button class="mood-pill active" type="button" data-value="Cut">Cut (lose fat)</button>
+                  <button class="mood-pill" type="button" data-value="Bulk">Bulk (gain muscle)</button>
+                  <button class="mood-pill" type="button" data-value="Lean Bulk">Lean Bulk</button>
+                  <button class="mood-pill" type="button" data-value="Recomp">Recomp (lose fat + gain muscle)</button>
+                  <button class="mood-pill" type="button" data-value="Maintain">Maintain</button>
+                </div>
+                <p id="planTypeDescription" class="activity-description">Calorie deficit — lose fat while preserving muscle</p>
+              </fieldset>
+
+              <fieldset>
+                <legend>Food preference</legend>
+                <div class="onboarding-pills plan-pills" data-plan-group="food_preference">
+                  <button class="mood-pill active" type="button" data-value="Vegetarian">Vegetarian</button>
+                  <button class="mood-pill" type="button" data-value="Non-Vegetarian">Non-Vegetarian</button>
+                  <button class="mood-pill" type="button" data-value="Eggetarian">Eggetarian</button>
+                  <button class="mood-pill" type="button" data-value="Vegan">Vegan</button>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Cuisine</legend>
+                <div class="onboarding-pills plan-pills multi" data-plan-group="cuisine">
+                  <button class="mood-pill active" type="button" data-value="Indian">Indian</button>
+                  <button class="mood-pill" type="button" data-value="Mediterranean">Mediterranean</button>
+                  <button class="mood-pill" type="button" data-value="Japanese">Japanese</button>
+                  <button class="mood-pill" type="button" data-value="Mix it up">Mix it up</button>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Budget per meal</legend>
+                <div class="onboarding-pills plan-pills" data-plan-group="budget">
+                  <button class="mood-pill active" type="button" data-value="Under ₹100">Under ₹100</button>
+                  <button class="mood-pill" type="button" data-value="₹100-200">₹100-200</button>
+                  <button class="mood-pill" type="button" data-value="₹200-400">₹200-400</button>
+                  <button class="mood-pill" type="button" data-value="No limit">No limit</button>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Sport/activity type</legend>
+                <div class="onboarding-pills plan-pills" data-plan-group="sport">
+                  <button class="mood-pill active" type="button" data-value="General fitness">General fitness</button>
+                  <button class="mood-pill" type="button" data-value="Weightlifting">Weightlifting</button>
+                  <button class="mood-pill" type="button" data-value="Running">Running</button>
+                  <button class="mood-pill" type="button" data-value="Cricket">Cricket</button>
+                  <button class="mood-pill" type="button" data-value="Football">Football</button>
+                  <button class="mood-pill" type="button" data-value="Yoga">Yoga</button>
+                  <button class="mood-pill" type="button" data-value="No specific sport">No specific sport</button>
+                </div>
+              </fieldset>
+
+              <label>
+                <span>Meals per day</span>
+                <select id="planMealsPerDay">
+                  <option value="3">3</option>
+                  <option value="4" selected>4</option>
+                  <option value="5">5</option>
+                </select>
+              </label>
+
+              <fieldset>
+                <legend>Alcohol</legend>
+                <div class="onboarding-pills plan-pills" data-plan-group="alcohol_frequency">
+                  <button class="mood-pill active" type="button" data-value="I don't drink">I don't drink</button>
+                  <button class="mood-pill" type="button" data-value="Occasionally (weekends)">Occasionally (weekends)</button>
+                  <button class="mood-pill" type="button" data-value="A few times a week">A few times a week</button>
+                  <button class="mood-pill" type="button" data-value="Regularly">Regularly</button>
+                </div>
+              </fieldset>
+
+              <button id="generateMealPlanButton" class="gradient-button full" type="submit">Generate My Plan 🔥</button>
+            </form>
+
+            <div id="planLoading" class="loading-card hidden-soft">
+              <div class="fiery-orb fire-loader">🔥</div>
+              <p>Sizzle is cooking your plan... 🔥</p>
+              <strong id="planLoadingMessage">Calculating your macros...</strong>
+            </div>
+          </div>
+
+          <div id="planDisplay" class="hidden-soft"></div>
+        </section>
+
         <section id="settingsView" class="view" data-view="settings">
           <div class="section-heading">
             <p class="eyebrow flame">Control center</p>
@@ -456,6 +552,7 @@
       <button class="nav-item" type="button" data-nav-target="today"><span>☀️</span>Today</button>
       <button class="nav-item" type="button" data-nav-target="insights"><span>✨</span>Insights</button>
       <button class="nav-item" type="button" data-nav-target="explore"><span>🌍</span>Explore</button>
+      <button class="nav-item" type="button" data-nav-target="plan"><span>📋</span>Plan</button>
       <button class="nav-item" type="button" data-nav-target="settings"><span>⚙️</span>Settings</button>
     </nav>
 

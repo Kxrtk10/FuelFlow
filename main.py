@@ -52,6 +52,14 @@ class ChatRequest(BaseModel):
     user_profile: dict[str, Any] = Field(default_factory=dict)
 
 
+class MealPlanRequest(BaseModel):
+    user_profile: dict[str, Any] = Field(default_factory=dict)
+
+
+class MealPlanSaveRequest(BaseModel):
+    plan_data: dict[str, Any]
+
+
 def get_db() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -87,6 +95,17 @@ def init_db() -> None:
                 user_id INTEGER,
                 log_data TEXT,
                 logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS meal_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                plan_data TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """
@@ -151,6 +170,25 @@ def summarize_logs(logs: list[dict[str, Any]]) -> str:
             f"(mood: {before}->{after}, energy: {energy}/10)."
         )
     return " ".join(entries)
+
+
+def calculate_plan_macros(profile: dict[str, Any]) -> dict[str, int]:
+    calories = int(profile.get("daily_calories") or 2000)
+    plan_type = profile.get("plan_type", "Maintain")
+    ratios = {
+        "Cut": (0.35, 0.40, 0.25),
+        "Bulk": (0.30, 0.50, 0.20),
+        "Lean Bulk": (0.35, 0.45, 0.20),
+        "Recomp": (0.40, 0.35, 0.25),
+        "Maintain": (0.30, 0.45, 0.25),
+    }.get(plan_type, (0.30, 0.45, 0.25))
+    protein_ratio, carbs_ratio, fat_ratio = ratios
+    return {
+        "daily_calories": calories,
+        "protein_g": round((calories * protein_ratio) / 4),
+        "carbs_g": round((calories * carbs_ratio) / 4),
+        "fat_g": round((calories * fat_ratio) / 9),
+    }
 
 
 app = FastAPI(title="FuelFlow")
@@ -428,6 +466,116 @@ Return only your reply text."""
         return {
             "reply": "I hit a little pause there, but here is a steady place to start: pair protein, fiber-rich carbs, and water when you can. Tell me what you ate or what your goal is, and I can help you make the next choice feel easier.",
         }
+
+
+@app.post("/api/generate-meal-plan")
+async def generate_meal_plan(
+    data: MealPlanRequest,
+    user: sqlite3.Row = Depends(get_current_user),
+) -> dict[str, Any]:
+    profile = data.user_profile or {}
+    macros = calculate_plan_macros(profile)
+    profile_json = json.dumps(profile, ensure_ascii=False)
+    prompt = f"""User profile:
+{profile_json}
+
+Calculated daily targets:
+- calories: {macros["daily_calories"]}
+- protein_g: {macros["protein_g"]}
+- carbs_g: {macros["carbs_g"]}
+- fat_g: {macros["fat_g"]}
+
+Generate a complete personalized 7-day meal plan for this user.
+Use exactly {profile.get("meals_per_day", 4)} meals per day.
+Respect food preference: {profile.get("food_preference", "Mix")}.
+Respect cuisine preference: {profile.get("cuisine", "Mix it up")}.
+Respect budget: {profile.get("budget", "No limit")}.
+Respect sport/activity: {profile.get("sport", "General fitness")}.
+Respect alcohol frequency: {profile.get("alcohol_frequency", "I don't drink")}.
+
+Return ONLY valid JSON in this exact schema:
+{{
+  "plan_summary": {{
+    "daily_calories": {macros["daily_calories"]},
+    "protein_g": {macros["protein_g"]},
+    "carbs_g": {macros["carbs_g"]},
+    "fat_g": {macros["fat_g"]},
+    "plan_type": "{profile.get("plan_type", "Maintain")}",
+    "weekly_goal": "specific weekly goal for this user's transformation"
+  }},
+  "days": [
+    {{
+      "day": "Monday",
+      "meals": [
+        {{
+          "meal_type": "Breakfast",
+          "time": "8:00 AM",
+          "name": "meal name",
+          "ingredients": ["ingredient with quantity"],
+          "calories": 0,
+          "protein_g": 0,
+          "carbs_g": 0,
+          "fat_g": 0,
+          "recipe": "3-4 sentence cooking instructions",
+          "why": "1 sentence explaining why this meal fits their goal"
+        }}
+      ],
+      "daily_totals": {{ "calories": 0, "protein_g": 0, "carbs_g": 0, "fat_g": 0 }}
+    }}
+  ],
+  "alcohol_guidance": "warm practical guidance",
+  "grocery_list": ["item with quantity for the week"],
+  "weekly_tips": ["tip1", "tip2", "tip3"],
+  "adjustment_note": "short note about adjusting if hunger, training, or weight changes"
+}}"""
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 4000,
+                    "system": (
+                        "You are FuelFlow's nutrition engine. Generate a realistic, varied, and practical 7-day meal plan. "
+                        "Use foods that are actually available and affordable in India unless another cuisine is specified. "
+                        "Each day should have different meals — no repetition across the week. "
+                        "Include Indian staples (dal, rice, roti, paneer, eggs, chicken) unless dietary restrictions say otherwise. "
+                        "Make recipes simple and quick. Be specific with quantities. "
+                        "If alcohol is consumed regularly, include one day with an alcohol balance guide showing how to adjust meals around a night out. "
+                        "Return ONLY valid JSON, no markdown, no explanation."
+                    ),
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+                timeout=120.0,
+            )
+            response_data = response.json()
+            raw = response_data["content"][0]["text"].strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        return json.loads(raw.strip())
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="FuelFlow could not generate your meal plan yet.") from exc
+
+
+@app.post("/api/plan/save")
+async def save_meal_plan(
+    data: MealPlanSaveRequest,
+    user: sqlite3.Row = Depends(get_current_user),
+) -> dict[str, Any]:
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO meal_plans (user_id, plan_data) VALUES (?, ?)",
+            (user["id"], json.dumps(data.plan_data)),
+        )
+    return {"ok": True}
 
 
 @app.get("/")

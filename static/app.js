@@ -8,6 +8,9 @@ const CHAT_SESSIONS_KEY = "fuelflow_chat_sessions";
 const STREAK_KEY = "fuelflow_streak";
 const DAILY_MOOD_KEY = "fuelflow_daily_mood";
 const DAILY_MOOD_DISMISS_KEY = "fuelflow_daily_mood_dismissed";
+const MEAL_PLAN_KEY = "fuelflow_meal_plan";
+const GROCERY_CHECKS_KEY = "fuelflow_grocery_checks";
+const WEIGHT_HISTORY_KEY = "fuelflow_weight_history";
 const DEFAULT_MEALS_PER_DAY = 4;
 
 const quotes = [
@@ -101,6 +104,21 @@ const bodyFatRanges = {
     { label: "Very High", range: "40%+", mid: 40, shape: 5 },
   ],
 };
+
+const planTypeDescriptions = {
+  "Cut": "Calorie deficit — lose fat while preserving muscle",
+  "Bulk": "Calorie surplus — maximize muscle growth",
+  "Lean Bulk": "Slight surplus — slow muscle gain, minimal fat",
+  "Recomp": "Maintenance calories — lose fat and gain muscle simultaneously",
+  "Maintain": "Stay exactly where you are, improve food quality",
+};
+
+const planLoadingMessages = [
+  "Calculating your macros...",
+  "Picking the best foods for your goal...",
+  "Making sure biryani fits in somewhere...",
+  "Almost ready — your transformation starts now...",
+];
 
 const exploreItems = [
   {
@@ -225,6 +243,14 @@ const previousChatsButton = document.querySelector("#previousChatsButton");
 const chatSessionsDropdown = document.querySelector("#chatSessionsDropdown");
 const backToCurrentChat = document.querySelector("#backToCurrentChat");
 const exploreGrid = document.querySelector("#exploreGrid");
+const planSetup = document.querySelector("#planSetup");
+const planDisplay = document.querySelector("#planDisplay");
+const mealPlanForm = document.querySelector("#mealPlanForm");
+const planMealsPerDay = document.querySelector("#planMealsPerDay");
+const planTypeDescription = document.querySelector("#planTypeDescription");
+const planLoading = document.querySelector("#planLoading");
+const planLoadingMessage = document.querySelector("#planLoadingMessage");
+const generateMealPlanButton = document.querySelector("#generateMealPlanButton");
 const settingsProfile = document.querySelector("#settingsProfile");
 const themeFiery = document.querySelector("#themeFiery");
 const themeOcean = document.querySelector("#themeOcean");
@@ -257,6 +283,16 @@ let logoutArmed = false;
 let onboardingMode = "full";
 let viewingArchivedChat = false;
 let archivedChatMessages = [];
+let planSelections = {
+  plan_type: "Cut",
+  food_preference: "Vegetarian",
+  cuisine: ["Indian"],
+  budget: "Under ₹100",
+  sport: "General fitness",
+  alcohol_frequency: "I don't drink",
+};
+let selectedPlanDay = 0;
+let planLoadingTimer = null;
 
 function getToken() {
   return localStorage.getItem(TOKEN_KEY);
@@ -370,6 +406,38 @@ async function loadLogsFromServer() {
   logsCache = data.logs || [];
 }
 
+function readMealPlan() {
+  try {
+    return JSON.parse(localStorage.getItem(MEAL_PLAN_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function writeMealPlan(plan) {
+  localStorage.setItem(MEAL_PLAN_KEY, JSON.stringify(plan));
+}
+
+function readGroceryChecks() {
+  try {
+    return JSON.parse(localStorage.getItem(GROCERY_CHECKS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function writeGroceryChecks(checks) {
+  localStorage.setItem(GROCERY_CHECKS_KEY, JSON.stringify(checks));
+}
+
+async function savePlanToServer(plan) {
+  if (!getToken()) return;
+  await apiFetch("/api/plan/save", {
+    method: "POST",
+    body: JSON.stringify({ plan_data: plan }),
+  });
+}
+
 function calculateDailyCalories(profile) {
   const weight = Number(profile.weight_kg || 0);
   const height = Number(profile.height_cm || 0);
@@ -475,6 +543,10 @@ function switchView(viewName) {
 
   if (viewName === "settings") {
     renderSettings();
+  }
+
+  if (viewName === "plan") {
+    renderMealPlanView();
   }
 
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1268,6 +1340,246 @@ function renderExplore() {
     .join("");
 }
 
+function getPlanProfile() {
+  const user = readUser() || {};
+  return {
+    ...user,
+    food_preference: planSelections.food_preference,
+    budget: planSelections.budget,
+    sport: planSelections.sport,
+    plan_type: planSelections.plan_type,
+    cuisine: planSelections.cuisine.join(", "),
+    alcohol_frequency: planSelections.alcohol_frequency,
+    meals_per_day: Number(planMealsPerDay.value || DEFAULT_MEALS_PER_DAY),
+  };
+}
+
+function renderMealPlanView() {
+  const plan = readMealPlan();
+  planSetup.classList.toggle("hidden-soft", Boolean(plan));
+  planDisplay.classList.toggle("hidden-soft", !plan);
+  if (plan) {
+    renderMealPlan(plan);
+  }
+}
+
+function renderMealPlan(plan) {
+  const summary = plan.plan_summary || {};
+  const days = plan.days || [];
+  const day = days[selectedPlanDay] || days[0] || {};
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const alcoholFrequency = getPlanProfile().alcohol_frequency;
+  const showAlcohol = alcoholFrequency && alcoholFrequency !== "I don't drink";
+  const groceryChecks = readGroceryChecks();
+
+  planDisplay.className = "plan-display";
+  planDisplay.innerHTML = `
+    <section class="card plan-header">
+      <div class="plan-header-top">
+        <div>
+          <span class="plan-badge">${escapeHtml(summary.plan_type || "Plan")}</span>
+          <h2>Your ${escapeHtml(summary.plan_type || "Meal")} Plan</h2>
+          <p>${escapeHtml(summary.weekly_goal || "A practical week built around your goals.")}</p>
+        </div>
+        <div class="plan-actions">
+          <button id="regeneratePlanButton" class="secondary-button compact" type="button">Regenerate Plan</button>
+          <button id="downloadPlanButton" class="secondary-button compact" type="button">Download as PDF</button>
+        </div>
+      </div>
+      <div class="macro-pills">
+        <span class="metric-pill">${escapeHtml(summary.daily_calories || 0)} kcal/day</span>
+        <span class="metric-pill">P ${escapeHtml(summary.protein_g || 0)}g</span>
+        <span class="metric-pill">C ${escapeHtml(summary.carbs_g || 0)}g</span>
+        <span class="metric-pill">F ${escapeHtml(summary.fat_g || 0)}g</span>
+      </div>
+    </section>
+
+    <nav class="day-tabs" aria-label="Meal plan days">
+      ${days.map((item, index) => `
+        <button class="day-tab ${index === selectedPlanDay ? "active" : ""}" type="button" data-plan-day="${index}">
+          ${escapeHtml(dayNames[index] || item.day)}
+        </button>
+      `).join("")}
+    </nav>
+
+    <section class="meal-plan-day">
+      ${(day.meals || []).map((meal, index) => renderPlanMealCard(meal, index)).join("")}
+      ${showAlcohol ? `
+        <article class="card alcohol-guidance-card">
+          <h3>🍺 Alcohol Balance Guide</h3>
+          <p>${escapeHtml(plan.alcohol_guidance || "If you drink, hydrate well, eat protein first, and return to your normal meals the next day.")}</p>
+        </article>
+      ` : ""}
+    </section>
+
+    <section class="card grocery-section">
+      <div class="progress-heading">
+        <div>
+          <p class="eyebrow flame">Full week</p>
+          <h3>Grocery list</h3>
+        </div>
+        <button id="copyGroceryButton" class="secondary-button compact" type="button">Copy list</button>
+      </div>
+      <ul class="grocery-list">
+        ${(plan.grocery_list || []).map((item, index) => `
+          <li>
+            <label class="${groceryChecks[index] ? "checked" : ""}">
+              <input class="grocery-check" type="checkbox" data-grocery-index="${index}" ${groceryChecks[index] ? "checked" : ""}>
+              <span>${escapeHtml(item)}</span>
+            </label>
+          </li>
+        `).join("")}
+      </ul>
+    </section>
+
+    <section class="card weekly-tips">
+      <p class="eyebrow flame">This week</p>
+      <h3>Weekly tips</h3>
+      <div class="tip-grid">
+        ${(plan.weekly_tips || []).slice(0, 3).map((tip) => `
+          <article class="tip-card">
+            <span>✦</span>
+            <p>${escapeHtml(tip)}</p>
+          </article>
+        `).join("")}
+      </div>
+      <p>${escapeHtml(plan.adjustment_note || "")}</p>
+    </section>
+
+    <section class="card weight-check-card">
+      <h3>Track your progress</h3>
+      <p>Update your weight weekly so your plan stays accurate</p>
+      <form id="weightUpdateForm" class="weight-row">
+        <label>
+          <span>Weight in kg</span>
+          <input name="weightKg" type="number" min="1" step="0.1" value="${escapeHtml(readUser()?.weight_kg || "")}">
+        </label>
+        <button class="gradient-button compact" type="submit">Update & Recalculate</button>
+      </form>
+      <p id="planUpdateMessage" class="plan-message hidden-soft">Plan updated for your new stats 🔥</p>
+    </section>
+  `;
+}
+
+function renderPlanMealCard(meal, index) {
+  const totalMacros = Math.max(1, Number(meal.protein_g || 0) + Number(meal.carbs_g || 0) + Number(meal.fat_g || 0));
+  const proteinWidth = Math.round((Number(meal.protein_g || 0) / totalMacros) * 100);
+  const carbsWidth = Math.round((Number(meal.carbs_g || 0) / totalMacros) * 100);
+  const fatWidth = Math.max(0, 100 - proteinWidth - carbsWidth);
+  return `
+    <article class="card plan-meal-card" data-plan-meal-index="${index}">
+      <div class="plan-meal-top">
+        <div>
+          <div class="entry-title">
+            <span class="type-badge">${escapeHtml(meal.meal_type || "Meal")}</span>
+            <span class="entry-time">${escapeHtml(meal.time || "")}</span>
+          </div>
+          <h3>${escapeHtml(meal.name || "Meal")}</h3>
+        </div>
+        <button class="secondary-button compact log-plan-meal" type="button">Log this meal</button>
+      </div>
+      <div class="macro-bar" aria-label="Macro proportions">
+        <span style="width:${proteinWidth}%"></span>
+        <span style="width:${carbsWidth}%"></span>
+        <span style="width:${fatWidth}%"></span>
+      </div>
+      <div class="metric-pills">
+        <span class="metric-pill">${escapeHtml(meal.calories || 0)} kcal</span>
+        <span class="metric-pill">P ${escapeHtml(meal.protein_g || 0)}g</span>
+        <span class="metric-pill">C ${escapeHtml(meal.carbs_g || 0)}g</span>
+        <span class="metric-pill">F ${escapeHtml(meal.fat_g || 0)}g</span>
+      </div>
+      <button class="clear-chat-button recipe-toggle" type="button">See recipe ↓</button>
+      <div class="recipe-panel">
+        <h4>Ingredients</h4>
+        <ul>${(meal.ingredients || []).map((ingredient) => `<li>${escapeHtml(ingredient)}</li>`).join("")}</ul>
+        <h4>Recipe</h4>
+        <p>${escapeHtml(meal.recipe || "")}</p>
+        <p class="why-meal">Why this meal? ${escapeHtml(meal.why || "")}</p>
+      </div>
+    </article>
+  `;
+}
+
+function setPlanLoading(isLoading) {
+  generateMealPlanButton.disabled = isLoading;
+  planLoading.classList.toggle("hidden-soft", !isLoading);
+  if (isLoading) {
+    let index = 0;
+    planLoadingMessage.textContent = planLoadingMessages[index];
+    planLoadingTimer = window.setInterval(() => {
+      index = (index + 1) % planLoadingMessages.length;
+      planLoadingMessage.textContent = planLoadingMessages[index];
+    }, 1800);
+  } else if (planLoadingTimer) {
+    window.clearInterval(planLoadingTimer);
+    planLoadingTimer = null;
+  }
+}
+
+async function generateMealPlan() {
+  const profile = getPlanProfile();
+  setPlanLoading(true);
+  try {
+    const response = await apiFetch("/api/generate-meal-plan", {
+      method: "POST",
+      body: JSON.stringify({ user_profile: profile }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "FuelFlow could not generate your plan yet.");
+    }
+    const plan = await response.json();
+    writeMealPlan(plan);
+    localStorage.removeItem(GROCERY_CHECKS_KEY);
+    await savePlanToServer(plan);
+    selectedPlanDay = 0;
+    renderMealPlanView();
+    showToast("Your meal plan is ready 🔥");
+  } catch (error) {
+    showToast(error.message || "Something paused. Please try again.");
+  } finally {
+    setPlanLoading(false);
+  }
+}
+
+async function logPlanMeal(meal) {
+  const logs = readLogs();
+  logs.push({
+    id: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
+    mealName: meal.name || "Planned meal",
+    mealType: meal.meal_type || "Meal",
+    portionFeel: "Just right",
+    moodBefore: { emoji: "😐", label: "Neutral" },
+    moodAfter: { emoji: "😊", label: "Good" },
+    energy: 7,
+    notes: `From meal plan: ${meal.calories || 0} kcal, P ${meal.protein_g || 0}g, C ${meal.carbs_g || 0}g, F ${meal.fat_g || 0}g`,
+    dailyMood: readDailyMoodData()[getTodayKey()]?.mood || "",
+    alcohol: false,
+    drinks: 0,
+    eaten: true,
+  });
+  await writeLogs(logs);
+  showToast("Meal logged from your plan.");
+  renderToday();
+  renderHomeProgress();
+}
+
+async function updateWeightAndRecalculate(weightKg) {
+  const user = readUser();
+  if (!user || !weightKg) return;
+  const updatedUser = { ...user, weight_kg: Number(weightKg) };
+  updatedUser.daily_calories = calculateDailyCalories(updatedUser);
+  writeUser(updatedUser);
+  await saveProfileToServer(updatedUser);
+  const history = JSON.parse(localStorage.getItem(WEIGHT_HISTORY_KEY) || "[]");
+  history.push({ date: new Date().toISOString(), weight_kg: Number(weightKg) });
+  localStorage.setItem(WEIGHT_HISTORY_KEY, JSON.stringify(history));
+  document.querySelector("#planUpdateMessage")?.classList.remove("hidden-soft");
+  renderHomePersonalization();
+}
+
 let onboardingStep = 0;
 let onboardingSelections = {
   goal: "Lose weight",
@@ -1700,6 +2012,27 @@ function bindEvents() {
       return;
     }
 
+    const planPill = event.target.closest(".plan-pills .mood-pill");
+    if (planPill) {
+      const group = planPill.closest(".plan-pills");
+      const key = group.dataset.planGroup;
+      if (group.classList.contains("multi")) {
+        planPill.classList.toggle("active");
+        const activeValues = Array.from(group.querySelectorAll(".mood-pill.active")).map((button) => button.dataset.value);
+        planSelections[key] = activeValues.length ? activeValues : [planPill.dataset.value];
+        if (!activeValues.length) planPill.classList.add("active");
+      } else {
+        group.querySelectorAll(".mood-pill").forEach((button) => {
+          button.classList.toggle("active", button === planPill);
+        });
+        planSelections[key] = planPill.dataset.value;
+        if (key === "plan_type") {
+          planTypeDescription.textContent = planTypeDescriptions[planPill.dataset.value];
+        }
+      }
+      return;
+    }
+
     const onboardingPill = event.target.closest(".onboarding-pills .mood-pill");
     if (onboardingPill) {
       const group = onboardingPill.closest(".onboarding-pills");
@@ -1868,6 +2201,73 @@ function bindEvents() {
     }
   });
 
+  mealPlanForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await generateMealPlan();
+  });
+
+  planDisplay.addEventListener("click", async (event) => {
+    const dayButton = event.target.closest("[data-plan-day]");
+    if (dayButton) {
+      selectedPlanDay = Number(dayButton.dataset.planDay);
+      renderMealPlan(readMealPlan());
+      return;
+    }
+
+    if (event.target.closest("#regeneratePlanButton")) {
+      localStorage.removeItem(MEAL_PLAN_KEY);
+      renderMealPlanView();
+      return;
+    }
+
+    if (event.target.closest("#downloadPlanButton")) {
+      window.print();
+      return;
+    }
+
+    const mealCard = event.target.closest(".plan-meal-card");
+    if (event.target.closest(".recipe-toggle") && mealCard) {
+      mealCard.classList.toggle("open");
+      return;
+    }
+
+    if (event.target.closest(".log-plan-meal") && mealCard) {
+      const plan = readMealPlan();
+      const meal = plan?.days?.[selectedPlanDay]?.meals?.[Number(mealCard.dataset.planMealIndex)];
+      if (meal) {
+        await logPlanMeal(meal);
+      }
+      return;
+    }
+
+    if (event.target.closest("#copyGroceryButton")) {
+      const list = (readMealPlan()?.grocery_list || []).join("\n");
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(list);
+        showToast("Grocery list copied.");
+      } else {
+        showToast("Copy is not available in this browser.");
+      }
+    }
+  });
+
+  planDisplay.addEventListener("change", (event) => {
+    if (event.target.classList.contains("grocery-check")) {
+      const checks = readGroceryChecks();
+      checks[event.target.dataset.groceryIndex] = event.target.checked;
+      writeGroceryChecks(checks);
+      event.target.closest("label").classList.toggle("checked", event.target.checked);
+    }
+  });
+
+  planDisplay.addEventListener("submit", async (event) => {
+    if (event.target.id === "weightUpdateForm") {
+      event.preventDefault();
+      const weightKg = new FormData(event.target).get("weightKg");
+      await updateWeightAndRecalculate(weightKg);
+    }
+  });
+
   insightsButton.addEventListener("click", getInsights);
 
   sizzleForm.addEventListener("submit", async (event) => {
@@ -1958,6 +2358,7 @@ async function init() {
   quoteText.textContent = randomItem(quotes);
   renderMoodGroups();
   renderExplore();
+  renderMealPlanView();
   renderChatSessionsDropdown();
   renderSizzleMessages();
   bindEvents();
