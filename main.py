@@ -205,6 +205,22 @@ def calculate_plan_macros(profile: dict[str, Any]) -> dict[str, int]:
     }
 
 
+def parse_claude_json(raw: str) -> dict[str, Any]:
+    cleaned = raw.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.split("```")[1]
+        if cleaned.startswith("json"):
+            cleaned = cleaned[4:]
+    cleaned = cleaned.strip()
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        raise
+
+
 app = FastAPI(title="FuelFlow")
 
 app.add_middleware(
@@ -501,6 +517,122 @@ async def _generate_meal_plan_impl(
 ) -> dict[str, Any]:
     profile = data.user_profile or {}
     macros = calculate_plan_macros(profile)
+    profile_summary = (
+        f"name: {profile.get('name', 'FuelFlow user')}, "
+        f"weight: {profile.get('weight_kg', 'unknown')} kg, "
+        f"goal: {profile.get('goal', 'unknown')}, "
+        f"plan_type: {profile.get('plan_type', 'Maintain')}, "
+        f"activity: {profile.get('activity_level', 'unknown')}, "
+        f"body_type: {profile.get('body_type', 'unknown')}, "
+        f"body_fat: {profile.get('body_fat_range', 'unknown')}, "
+        f"target_body_fat: {profile.get('target_body_fat_range', 'unknown')}, "
+        f"food_preference: {profile.get('food_preference', 'Mix')}, "
+        f"cuisine: {profile.get('cuisine', 'Mix it up')}, "
+        f"budget: {profile.get('budget', 'No limit')}, "
+        f"sport: {profile.get('sport', 'General fitness')}, "
+        f"alcohol_frequency: {profile.get('alcohol_frequency', 'I do not drink')}, "
+        f"daily_calories: {macros['daily_calories']}, "
+        f"protein_g: {macros['protein_g']}, "
+        f"carbs_g: {macros['carbs_g']}, "
+        f"fat_g: {macros['fat_g']}"
+    )
+    system_prompt = (
+        "Generate a realistic meal plan. Protein target is based on bodyweight "
+        "(already calculated and provided) - do NOT increase it. Fat is moderate. "
+        "Carbs fill the remaining calories. Include breakfast, morning snack, lunch, "
+        "afternoon snack, dinner, and one small enjoyable daily treat. Keep meals "
+        "practical, affordable, and varied across the week. No two days should have "
+        "the same breakfast. Return ONLY valid JSON, no markdown, no explanation."
+    )
+
+    async def generate_plan_chunk(
+        client: httpx.AsyncClient,
+        days_label: str,
+        include_weekly_fields: bool = False,
+    ) -> dict[str, Any]:
+        extra_schema = ""
+        if include_weekly_fields:
+            extra_schema = """,
+  "plan_summary": { "daily_calories": int, "protein_g": int, "carbs_g": int, "fat_g": int, "plan_type": str, "weekly_goal": str },
+  "grocery_list": ["item with quantity"],
+  "weekly_tips": ["tip1", "tip2", "tip3"],
+  "alcohol_guidance": str,
+  "adjustment_note": str"""
+
+        response_schema = """
+{
+  "days": [
+    {
+      "day": "Monday",
+      "meals": [
+        {
+          "meal_type": str,
+          "time": str,
+          "name": str,
+          "calories": int,
+          "protein_g": int,
+          "carbs_g": int,
+          "fat_g": int,
+          "ingredients": ["item with quantity"],
+          "recipe": str,
+          "why": str
+        }
+      ],
+      "daily_totals": { "calories": int, "protein_g": int, "carbs_g": int, "fat_g": int }
+    }
+  ]%s
+}
+""" % extra_schema
+        prompt = f"""User profile summary:
+{profile_summary}
+
+Generate only these days: {days_label}.
+Meal types for every day: Breakfast, Morning Snack, Lunch, Afternoon Snack, Dinner, Daily Treat.
+Keep recipes to 1-2 sentences, ingredients to 3-4 items per meal, and why fields to one sentence.
+The Daily Treat should be 100-150 kcal and framed positively as enjoyable.
+Use foods available and affordable in India unless the profile asks for another cuisine.
+
+Return ONLY valid JSON, no markdown, no explanation, in this schema:
+{response_schema}"""
+        response = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 3000,
+                "system": system_prompt,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=120.0,
+        )
+        response_data = response.json()
+        raw = response_data["content"][0]["text"].strip()
+        return parse_claude_json(raw)
+
+    try:
+        async with httpx.AsyncClient() as client:
+            call1_result = await generate_plan_chunk(client, "Monday, Tuesday, Wednesday")
+            call2_result = await generate_plan_chunk(client, "Thursday, Friday")
+            call3_result = await generate_plan_chunk(
+                client,
+                "Saturday, Sunday",
+                include_weekly_fields=True,
+            )
+        return {
+            "plan_summary": call3_result["plan_summary"],
+            "days": call1_result["days"] + call2_result["days"] + call3_result["days"],
+            "grocery_list": call3_result["grocery_list"],
+            "weekly_tips": call3_result["weekly_tips"],
+            "alcohol_guidance": call3_result["alcohol_guidance"],
+            "adjustment_note": call3_result["adjustment_note"],
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="FuelFlow could not generate your meal plan yet.") from exc
+
     profile_json = json.dumps(profile, ensure_ascii=False)
     prompt = f"""User profile:
 {profile_json}
