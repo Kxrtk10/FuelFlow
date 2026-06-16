@@ -766,15 +766,18 @@ function getSilhouetteSvg(shape = 2, label = "body") {
 }
 
 function bodySvg(content, label = "body reference") {
+  bodySvg.counter = (bodySvg.counter || 0) + 1;
+  const gradientId = `bodyGrad${bodySvg.counter}`;
+  const scopedContent = content.replaceAll("url(#bodyGrad)", `url(#${gradientId})`);
   return `
-    <svg viewBox="0 0 80 140" role="img" aria-label="${escapeHtml(label)}">
+    <svg width="100%" height="120" viewBox="0 0 80 140" role="img" aria-label="${escapeHtml(label)}">
       <defs>
-        <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#FF8C00"/>
           <stop offset="100%" stop-color="#FF4500"/>
         </linearGradient>
       </defs>
-      ${content}
+      ${scopedContent}
     </svg>
   `;
 }
