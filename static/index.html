@@ -11,7 +11,67 @@
   </head>
   <body>
     <section id="authView" class="auth-shell">
-      <div class="auth-card" id="loginView">
+      <div class="auth-left-panel">
+        <div class="auth-left-brand">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="44" height="44" rx="10" fill="url(#authLogoBgGrad)"/>
+            <path d="M0 44 L0 26 C2.5 21 4.5 17 7 14 C9.5 20 11.5 24 14 28 C16 20 18.5 15 21.5 10 C24 16 25.5 22 28 28 C30 21 32.5 16 36 13 C38 19 40.5 23 44 27 L44 44 Z" fill="url(#authLogoFlameGrad)"/>
+            <path d="M13.5 3 L15.25 7 L15.25 24 L11.75 24 L11.75 7 Z" fill="#FFFFFF"/>
+            <path d="M22 3 L23.75 7 L23.75 26.5 L20.25 26.5 L20.25 7 Z" fill="#FFFFFF"/>
+            <path d="M30.5 3 L32.25 7 L32.25 24 L28.75 24 L28.75 7 Z" fill="#FFFFFF"/>
+            <path d="M11.75 21 C15 24.5 18 26 22 26 C26 26 29 24.5 32.25 21 L32.25 23.25 C29.5 26.5 26.25 28 22 28 C17.75 28 14.5 26.5 11.75 23.25 Z" fill="#FFFFFF"/>
+            <rect x="20" y="26" width="4" height="14" rx="2" fill="#FFFFFF"/>
+            <defs>
+              <linearGradient id="authLogoBgGrad" x1="22" y1="0" x2="22" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#1A1A1A"/>
+                <stop offset="100%" stop-color="#3D1200"/>
+              </linearGradient>
+              <linearGradient id="authLogoFlameGrad" x1="22" y1="44" x2="22" y2="8" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FF2200"/>
+                <stop offset="61%" stop-color="#FF7000"/>
+                <stop offset="100%" stop-color="#FFD000"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="wordmark">FuelFlow</span>
+        </div>
+        <div class="auth-left-copy">
+          <h1>FUELFLOW</h1>
+          <p id="authQuoteText"></p>
+          <div class="auth-feature-pills">
+            <span>🔥 AI Meal Plans</span>
+            <span>✨ Weekly Insights</span>
+            <span>💛 No Guilt</span>
+          </div>
+        </div>
+        <p class="auth-left-footnote">Join thousands transforming their relationship with food</p>
+      </div>
+
+      <div class="auth-right-panel">
+        <div class="auth-mobile-brand">
+          <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="44" height="44" rx="10" fill="url(#authMobileLogoBgGrad)"/>
+            <path d="M0 44 L0 26 C2.5 21 4.5 17 7 14 C9.5 20 11.5 24 14 28 C16 20 18.5 15 21.5 10 C24 16 25.5 22 28 28 C30 21 32.5 16 36 13 C38 19 40.5 23 44 27 L44 44 Z" fill="url(#authMobileLogoFlameGrad)"/>
+            <path d="M13.5 3 L15.25 7 L15.25 24 L11.75 24 L11.75 7 Z" fill="#FFFFFF"/>
+            <path d="M22 3 L23.75 7 L23.75 26.5 L20.25 26.5 L20.25 7 Z" fill="#FFFFFF"/>
+            <path d="M30.5 3 L32.25 7 L32.25 24 L28.75 24 L28.75 7 Z" fill="#FFFFFF"/>
+            <path d="M11.75 21 C15 24.5 18 26 22 26 C26 26 29 24.5 32.25 21 L32.25 23.25 C29.5 26.5 26.25 28 22 28 C17.75 28 14.5 26.5 11.75 23.25 Z" fill="#FFFFFF"/>
+            <rect x="20" y="26" width="4" height="14" rx="2" fill="#FFFFFF"/>
+            <defs>
+              <linearGradient id="authMobileLogoBgGrad" x1="22" y1="0" x2="22" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#1A1A1A"/>
+                <stop offset="100%" stop-color="#3D1200"/>
+              </linearGradient>
+              <linearGradient id="authMobileLogoFlameGrad" x1="22" y1="44" x2="22" y2="8" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FF2200"/>
+                <stop offset="61%" stop-color="#FF7000"/>
+                <stop offset="100%" stop-color="#FFD000"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="wordmark">FuelFlow</span>
+        </div>
+        <div class="auth-card" id="loginView">
         <div class="auth-brand">
           <span class="wordmark">FuelFlow</span>
         </div>
@@ -27,9 +87,9 @@
         <p id="loginError" class="auth-error"></p>
         <button id="loginButton" class="gradient-button full" type="button">Log In</button>
         <button id="showSignupButton" class="auth-link" type="button">Don't have an account? Sign up</button>
-      </div>
+        </div>
 
-      <div class="auth-card hidden-soft" id="signupView">
+        <div class="auth-card hidden-soft" id="signupView">
         <div class="auth-brand">
           <span class="wordmark">FuelFlow</span>
         </div>
@@ -49,6 +109,7 @@
         <p id="signupError" class="auth-error"></p>
         <button id="signupButton" class="gradient-button full" type="button">Create Account</button>
         <button id="showLoginButton" class="auth-link" type="button">Already have an account? Log in</button>
+        </div>
       </div>
     </section>
 

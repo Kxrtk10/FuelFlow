@@ -190,6 +190,7 @@ const exploreItems = [
 ];
 
 const quoteText = document.querySelector("#quoteText");
+const authQuoteText = document.querySelector("#authQuoteText");
 const authView = document.querySelector("#authView");
 const loginView = document.querySelector("#loginView");
 const signupView = document.querySelector("#signupView");
@@ -2405,6 +2406,9 @@ function bindEvents() {
 async function init() {
   applyTheme(localStorage.getItem(THEME_KEY) || "fiery");
   quoteText.textContent = randomItem(quotes);
+  if (authQuoteText) {
+    authQuoteText.textContent = randomItem(quotes);
+  }
   renderMoodGroups();
   renderExplore();
   restorePlanSelections();
