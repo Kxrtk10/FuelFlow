@@ -1515,7 +1515,10 @@ function renderPlanMealCard(meal, index) {
           </div>
           <h3>${escapeHtml(meal.name || "Meal")}</h3>
         </div>
-        <button class="secondary-button compact log-plan-meal" type="button">Log this meal</button>
+        <div class="plan-meal-actions">
+          <button class="secondary-button compact ask-recipe-button" type="button">Ask Sizzle for recipe</button>
+          <button class="secondary-button compact log-plan-meal" type="button">Log this meal</button>
+        </div>
       </div>
       <div class="macro-bar" aria-label="Macro proportions">
         <span style="width:${proteinWidth}%"></span>
@@ -1528,14 +1531,8 @@ function renderPlanMealCard(meal, index) {
         <span class="metric-pill">C ${escapeHtml(meal.carbs_g || 0)}g</span>
         <span class="metric-pill">F ${escapeHtml(meal.fat_g || 0)}g</span>
       </div>
-      <button class="clear-chat-button recipe-toggle" type="button">See recipe ↓</button>
-      <div class="recipe-panel">
-        <h4>Ingredients</h4>
-        <ul>${(meal.ingredients || []).map((ingredient) => `<li>${escapeHtml(ingredient)}</li>`).join("")}</ul>
-        <h4>Recipe</h4>
-        <p>${escapeHtml(meal.recipe || "")}</p>
-        <p class="why-meal">Why this meal? ${escapeHtml(meal.why || "")}</p>
-      </div>
+      <p class="plan-meal-description">${escapeHtml(meal.description || "A practical meal built around your plan.")}</p>
+      <p class="why-meal">Why this meal? ${escapeHtml(meal.why || "")}</p>
     </article>
   `;
 }
@@ -2272,16 +2269,22 @@ function bindEvents() {
     }
 
     const mealCard = event.target.closest(".plan-meal-card");
-    if (event.target.closest(".recipe-toggle") && mealCard) {
-      mealCard.classList.toggle("open");
-      return;
-    }
-
     if (event.target.closest(".log-plan-meal") && mealCard) {
       const plan = readMealPlan();
       const meal = plan?.days?.[selectedPlanDay]?.meals?.[Number(mealCard.dataset.planMealIndex)];
       if (meal) {
         await logPlanMeal(meal);
+      }
+      return;
+    }
+
+    if (event.target.closest(".ask-recipe-button") && mealCard) {
+      const plan = readMealPlan();
+      const meal = plan?.days?.[selectedPlanDay]?.meals?.[Number(mealCard.dataset.planMealIndex)];
+      if (meal) {
+        switchView("insights");
+        sizzleInput.value = `Give me a detailed recipe for ${meal.name || "this meal"}`;
+        sizzleInput.focus();
       }
       return;
     }

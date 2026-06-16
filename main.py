@@ -545,55 +545,10 @@ async def _generate_meal_plan_impl(
         "the same breakfast. Return ONLY valid JSON, no markdown, no explanation."
     )
 
-    async def generate_plan_chunk(
+    async def call_claude_plan(
         client: httpx.AsyncClient,
-        days_label: str,
-        include_weekly_fields: bool = False,
+        prompt: str,
     ) -> dict[str, Any]:
-        extra_schema = ""
-        if include_weekly_fields:
-            extra_schema = """,
-  "plan_summary": { "daily_calories": int, "protein_g": int, "carbs_g": int, "fat_g": int, "plan_type": str, "weekly_goal": str },
-  "grocery_list": ["item with quantity"],
-  "weekly_tips": ["tip1", "tip2", "tip3"],
-  "alcohol_guidance": str,
-  "adjustment_note": str"""
-
-        response_schema = """
-{
-  "days": [
-    {
-      "day": "Monday",
-      "meals": [
-        {
-          "meal_type": str,
-          "time": str,
-          "name": str,
-          "calories": int,
-          "protein_g": int,
-          "carbs_g": int,
-          "fat_g": int,
-          "ingredients": ["item with quantity"],
-          "recipe": str,
-          "why": str
-        }
-      ],
-      "daily_totals": { "calories": int, "protein_g": int, "carbs_g": int, "fat_g": int }
-    }
-  ]%s
-}
-""" % extra_schema
-        prompt = f"""User profile summary:
-{profile_summary}
-
-Generate only these days: {days_label}.
-Meal types for every day: Breakfast, Morning Snack, Lunch, Afternoon Snack, Dinner, Daily Treat.
-Keep recipes to 1-2 sentences, ingredients to 3-4 items per meal, and why fields to one sentence.
-The Daily Treat should be 100-150 kcal and framed positively as enjoyable.
-Use foods available and affordable in India unless the profile asks for another cuisine.
-
-Return ONLY valid JSON, no markdown, no explanation, in this schema:
-{response_schema}"""
         response = await client.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -603,7 +558,7 @@ Return ONLY valid JSON, no markdown, no explanation, in this schema:
             },
             json={
                 "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 3000,
+                "max_tokens": 1500,
                 "system": system_prompt,
                 "messages": [{"role": "user", "content": prompt}],
             },
@@ -613,22 +568,70 @@ Return ONLY valid JSON, no markdown, no explanation, in this schema:
         raw = response_data["content"][0]["text"].strip()
         return parse_claude_json(raw)
 
+    def build_day_prompt(day: str) -> str:
+        return f"""User profile summary:
+{profile_summary}
+
+Generate only this day: {day}.
+Meal types for the day: Breakfast, Morning Snack, Lunch, Afternoon Snack, Dinner, Daily Treat.
+The Daily Treat should be 100-150 kcal and framed positively as enjoyable.
+Use foods available and affordable in India unless the profile asks for another cuisine.
+
+Return ONLY valid JSON, no markdown, no explanation, in this schema:
+{{
+  "day": "{day}",
+  "meals": [
+    {{
+      "meal_type": str,
+      "time": str,
+      "name": str,
+      "calories": int,
+      "protein_g": int,
+      "carbs_g": int,
+      "fat_g": int,
+      "description": "one sentence description of the meal",
+      "why": "one sentence why it fits the goal"
+    }}
+  ],
+  "daily_totals": {{ "calories": int, "protein_g": int, "carbs_g": int, "fat_g": int }}
+}}"""
+
+    summary_prompt = f"""User profile summary:
+{profile_summary}
+
+Generate the plan summary and supporting weekly fields only.
+Grocery list must be max 15 items.
+
+Return ONLY valid JSON, no markdown, no explanation, in this schema:
+{{
+  "plan_summary": {{
+    "daily_calories": {macros["daily_calories"]},
+    "protein_g": {macros["protein_g"]},
+    "carbs_g": {macros["carbs_g"]},
+    "fat_g": {macros["fat_g"]},
+    "plan_type": "{profile.get("plan_type", "Maintain")}",
+    "weekly_goal": "specific weekly goal for this user's transformation"
+  }},
+  "grocery_list": ["item1", "item2"],
+  "weekly_tips": ["tip1", "tip2", "tip3"],
+  "alcohol_guidance": "warm practical guidance",
+  "adjustment_note": "short note about adjusting if hunger, training, or weight changes"
+}}"""
+
     try:
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         async with httpx.AsyncClient() as client:
-            call1_result = await generate_plan_chunk(client, "Monday, Tuesday, Wednesday")
-            call2_result = await generate_plan_chunk(client, "Thursday, Friday")
-            call3_result = await generate_plan_chunk(
-                client,
-                "Saturday, Sunday",
-                include_weekly_fields=True,
-            )
+            days = []
+            for day_name in day_names:
+                days.append(await call_claude_plan(client, build_day_prompt(day_name)))
+            summary_result = await call_claude_plan(client, summary_prompt)
         return {
-            "plan_summary": call3_result["plan_summary"],
-            "days": call1_result["days"] + call2_result["days"] + call3_result["days"],
-            "grocery_list": call3_result["grocery_list"],
-            "weekly_tips": call3_result["weekly_tips"],
-            "alcohol_guidance": call3_result["alcohol_guidance"],
-            "adjustment_note": call3_result["adjustment_note"],
+            "plan_summary": summary_result["plan_summary"],
+            "days": days,
+            "grocery_list": summary_result["grocery_list"],
+            "weekly_tips": summary_result["weekly_tips"],
+            "alcohol_guidance": summary_result["alcohol_guidance"],
+            "adjustment_note": summary_result["adjustment_note"],
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail="FuelFlow could not generate your meal plan yet.") from exc

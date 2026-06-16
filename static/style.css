@@ -1521,6 +1521,18 @@ body.theme-ocean .theme-pill.active {
   align-items: flex-start;
 }
 
+.plan-meal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.plan-meal-description {
+  color: var(--text);
+  line-height: 1.6;
+}
+
 .macro-bar {
   display: flex;
   height: 10px;
