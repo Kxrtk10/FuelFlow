@@ -1910,11 +1910,17 @@ async function completeAuthenticatedLoad(profile = null) {
   }
   await loadLogsFromServer();
   showMainApp();
+  renderMoodGroups();
+  renderExplore();
+  restorePlanSelections();
+  renderMealPlanView();
+  renderChatSessionsDropdown();
   renderToday();
   renderHomePersonalization();
   updateInsightsState();
   renderSizzleMessages();
   renderSettings();
+  switchView("home");
   if (!readUser()) {
     startOnboarding(0, "full");
   }
@@ -1933,9 +1939,17 @@ async function handleAuthResponse(response, errorEl) {
     await loadLogsFromServer();
     localStorage.removeItem(USER_KEY);
     showMainApp();
+    renderMoodGroups();
+    renderExplore();
+    restorePlanSelections();
+    renderMealPlanView();
+    renderChatSessionsDropdown();
     renderToday();
     renderHomePersonalization();
     updateInsightsState();
+    renderSizzleMessages();
+    renderSettings();
+    switchView("home");
     startOnboarding(0, "full");
   }
   errorEl.textContent = "";
@@ -2405,16 +2419,12 @@ function bindEvents() {
 
 async function init() {
   applyTheme(localStorage.getItem(THEME_KEY) || "fiery");
-  quoteText.textContent = randomItem(quotes);
-  if (authQuoteText) {
-    authQuoteText.textContent = randomItem(quotes);
+  if (quoteText) {
+    quoteText.textContent = randomItem(quotes);
   }
-  renderMoodGroups();
-  renderExplore();
-  restorePlanSelections();
-  renderMealPlanView();
-  renderChatSessionsDropdown();
-  renderSizzleMessages();
+  if (authQuoteText) {
+    authQuoteText.textContent = "Become the best version of yourself.";
+  }
   bindEvents();
   await verifyExistingSession();
 }
