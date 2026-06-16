@@ -72,37 +72,46 @@ const activityDescriptions = {
 const bodyTypes = [
   {
     key: "Ectomorph",
-    description: "Naturally lean, hard to gain weight, fast metabolism",
-    shape: "lean",
+    description: "Tall, narrow frame, long limbs",
+  },
+  {
+    key: "Skinny Fat",
+    description: "Slim frame with softer midsection",
   },
   {
     key: "Mesomorph",
-    description: "Athletic build, gains muscle easily, responds well to training",
-    shape: "athletic",
+    description: "Athletic V-taper, responds well to training",
   },
   {
     key: "Endomorph",
-    description: "Broader build, gains weight easily, higher body fat tendency",
-    shape: "broad",
+    description: "Rounder, wider, fuller build",
+  },
+  {
+    key: "Athletic/Fit",
+    description: "Muscular and visibly defined",
+  },
+  {
+    key: "Stocky/Powerbuilt",
+    description: "Wide, thick, strong frame",
   },
 ];
 
 const bodyFatRanges = {
   Male: [
-    { label: "Very Lean", range: "8-12%", mid: 10, shape: 0 },
-    { label: "Lean", range: "13-17%", mid: 15, shape: 1 },
-    { label: "Average", range: "18-22%", mid: 20, shape: 2 },
-    { label: "Above Average", range: "23-27%", mid: 25, shape: 3 },
-    { label: "High", range: "28-33%", mid: 30.5, shape: 4 },
-    { label: "Very High", range: "34%+", mid: 34, shape: 5 },
+    { label: "Very Lean", range: "8-12%", mid: 10, shape: 0, description: "Sharp definition, narrow waist" },
+    { label: "Lean", range: "13-17%", mid: 15, shape: 1, description: "Athletic with light abs" },
+    { label: "Average", range: "18-22%", mid: 20, shape: 2, description: "Smooth torso, slight curve" },
+    { label: "Above Average", range: "23-27%", mid: 25, shape: 3, description: "Fuller waist and hips" },
+    { label: "High", range: "28-33%", mid: 30.5, shape: 4, description: "Rounder overall shape" },
+    { label: "Very High", range: "34%+", mid: 34, shape: 5, description: "Largest, softest silhouette" },
   ],
   Female: [
-    { label: "Very Lean", range: "15-19%", mid: 17, shape: 0 },
-    { label: "Lean", range: "20-24%", mid: 22, shape: 1 },
-    { label: "Average", range: "25-29%", mid: 27, shape: 2 },
-    { label: "Above Average", range: "30-34%", mid: 32, shape: 3 },
-    { label: "High", range: "35-39%", mid: 37, shape: 4 },
-    { label: "Very High", range: "40%+", mid: 40, shape: 5 },
+    { label: "Very Lean", range: "15-19%", mid: 17, shape: 0, description: "Defined hourglass, lean waist" },
+    { label: "Lean", range: "20-24%", mid: 22, shape: 1, description: "Athletic curves, light definition" },
+    { label: "Average", range: "25-29%", mid: 27, shape: 2, description: "Soft, balanced silhouette" },
+    { label: "Above Average", range: "30-34%", mid: 32, shape: 3, description: "Fuller hips and midsection" },
+    { label: "High", range: "35-39%", mid: 37, shape: 4, description: "Rounder apple shape" },
+    { label: "Very High", range: "40%+", mid: 40, shape: 5, description: "Largest, softest silhouette" },
   ],
 };
 
@@ -756,99 +765,195 @@ function getSilhouetteSvg(shape = 2, label = "body") {
   return getBodyFatSvg(shape, readUser()?.sex || onboardingSex?.value || "Male", label);
 }
 
-function svgDefs(id, colors = ["#FFD000", "#FF7000", "#FF2200"]) {
+function bodySvg(content, label = "body reference") {
   return `
-    <defs>
-      <linearGradient id="${id}" x1="40" y1="8" x2="40" y2="118" gradientUnits="userSpaceOnUse">
-        <stop offset="0%" stop-color="${colors[0]}"/>
-        <stop offset="52%" stop-color="${colors[1]}"/>
-        <stop offset="100%" stop-color="${colors[2]}"/>
-      </linearGradient>
-    </defs>
+    <svg viewBox="0 0 80 140" role="img" aria-label="${escapeHtml(label)}">
+      <defs>
+        <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FF8C00"/>
+          <stop offset="100%" stop-color="#FF4500"/>
+        </linearGradient>
+      </defs>
+      ${content}
+    </svg>
   `;
 }
 
+function lineRect(x, y, w, h, rx = 1) {
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="#2A0B00" opacity="0.42"/>`;
+}
+
 function getBodyTypeSvg(type) {
-  const id = `typeGrad${type}`;
-  if (type === "Ectomorph") {
-    return `
-      <svg viewBox="0 0 80 120" role="img" aria-label="Ectomorph body type">
-        ${svgDefs(id)}
-        <circle cx="40" cy="13" r="8" fill="url(#${id})"/>
-        <path d="M31 30 C32 24 48 24 49 30 L46 78 C45 89 35 89 34 78 Z" fill="url(#${id})"/>
-        <path d="M31 35 L20 74 M49 35 L60 74" stroke="#FF8C00" stroke-width="5" stroke-linecap="round"/>
-        <path d="M35 82 L30 116 M45 82 L50 116" stroke="#FF8C00" stroke-width="5" stroke-linecap="round"/>
-      </svg>
-    `;
-  }
-  if (type === "Mesomorph") {
-    return `
-      <svg viewBox="0 0 80 120" role="img" aria-label="Mesomorph body type">
-        ${svgDefs(id)}
-        <circle cx="40" cy="13" r="9" fill="url(#${id})"/>
-        <path d="M20 32 C27 22 53 22 60 32 L51 78 C49 91 31 91 29 78 Z" fill="url(#${id})"/>
-        <path d="M22 36 C15 47 14 62 20 74 M58 36 C65 47 66 62 60 74" stroke="#FF7000" stroke-width="8" stroke-linecap="round"/>
-        <path d="M34 82 L29 116 M46 82 L51 116" stroke="#FF8C00" stroke-width="7" stroke-linecap="round"/>
-        <path d="M31 43 H49 M34 53 H46 M35 63 H45 M40 43 V72" stroke="#4A1600" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
-      </svg>
-    `;
-  }
-  return `
-    <svg viewBox="0 0 80 120" role="img" aria-label="Endomorph body type">
-      ${svgDefs(id, ["#FFB000", "#FF7A00", "#C65300"])}
-      <circle cx="40" cy="14" r="10" fill="url(#${id})"/>
-      <path d="M18 35 C22 22 58 22 62 35 C70 60 63 91 40 95 C17 91 10 60 18 35Z" fill="url(#${id})"/>
-      <path d="M20 42 C12 55 12 70 20 82 M60 42 C68 55 68 70 60 82" stroke="#FF7A00" stroke-width="9" stroke-linecap="round"/>
-      <path d="M33 91 L28 116 M47 91 L52 116" stroke="#FF8C00" stroke-width="9" stroke-linecap="round"/>
-    </svg>
-  `;
+  const figures = {
+    "Ectomorph": `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/>
+      <rect x="37" y="24" width="6" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="35" rx="14" ry="6" fill="url(#bodyGrad)"/>
+      <path d="M28 36 C31 46 31 62 31 75 L49 75 C49 62 49 46 52 36 Z" fill="url(#bodyGrad)"/>
+      <rect x="23" y="37" width="6" height="44" rx="3" fill="url(#bodyGrad)"/>
+      <rect x="51" y="37" width="6" height="44" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="77" rx="14" ry="5" fill="url(#bodyGrad)"/>
+      <rect x="31" y="80" width="8" height="60" rx="4" fill="url(#bodyGrad)"/>
+      <rect x="41" y="80" width="8" height="60" rx="4" fill="url(#bodyGrad)"/>
+    `,
+    "Skinny Fat": `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/>
+      <rect x="37" y="24" width="6" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="35" rx="16" ry="6" fill="url(#bodyGrad)"/>
+      <path d="M26 36 C32 46 32 68 29 78 L51 78 C48 68 48 46 54 36 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="61" rx="18" ry="14" fill="url(#bodyGrad)"/>
+      <rect x="21" y="39" width="7" height="45" rx="3.5" fill="url(#bodyGrad)"/>
+      <rect x="52" y="39" width="7" height="45" rx="3.5" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="80" rx="18" ry="6" fill="url(#bodyGrad)"/>
+      <rect x="29" y="84" width="10" height="56" rx="5" fill="url(#bodyGrad)"/>
+      <rect x="41" y="84" width="10" height="56" rx="5" fill="url(#bodyGrad)"/>
+    `,
+    "Mesomorph": `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/>
+      <rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="24" ry="7" fill="url(#bodyGrad)"/>
+      <path d="M16 38 L64 38 C61 52 55 63 52 65 L28 65 C25 63 19 52 16 38 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="33" cy="45" rx="7" ry="5" fill="#2A0B00" opacity="0.25"/>
+      <ellipse cx="47" cy="45" rx="7" ry="5" fill="#2A0B00" opacity="0.25"/>
+      ${lineRect(31, 52, 18, 2, 1)}${lineRect(32, 58, 16, 2, 1)}${lineRect(34, 64, 12, 2, 1)}
+      <path d="M25 66 L55 66 L57 78 L23 78 Z" fill="url(#bodyGrad)"/>
+      <path d="M17 41 C8 51 9 69 18 83 C24 78 24 57 28 43 Z" fill="url(#bodyGrad)"/>
+      <path d="M63 41 C72 51 71 69 62 83 C56 78 56 57 52 43 Z" fill="url(#bodyGrad)"/>
+      <path d="M25 80 C35 82 38 101 36 140 L25 140 C25 118 20 95 25 80 Z" fill="url(#bodyGrad)"/>
+      <path d="M55 80 C45 82 42 101 44 140 L55 140 C55 118 60 95 55 80 Z" fill="url(#bodyGrad)"/>
+    `,
+    "Endomorph": `
+      <circle cx="40" cy="15" r="11" fill="url(#bodyGrad)"/>
+      <rect x="35" y="25" width="10" height="7" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="22" ry="8" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="63" rx="29" ry="32" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="72" rx="33" ry="23" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="91" rx="29" ry="10" fill="url(#bodyGrad)"/>
+      <rect x="12" y="42" width="13" height="50" rx="7" fill="url(#bodyGrad)"/>
+      <rect x="55" y="42" width="13" height="50" rx="7" fill="url(#bodyGrad)"/>
+      <rect x="26" y="94" width="14" height="46" rx="7" fill="url(#bodyGrad)"/>
+      <rect x="40" y="94" width="14" height="46" rx="7" fill="url(#bodyGrad)"/>
+    `,
+    "Athletic/Fit": `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/>
+      <rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <path d="M12 36 C20 26 60 26 68 36 C62 42 57 43 52 40 L28 40 C23 43 18 42 12 36 Z" fill="url(#bodyGrad)"/>
+      <path d="M18 39 L62 39 C58 55 52 70 49 73 L31 73 C28 70 22 55 18 39 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="32" cy="46" rx="8" ry="5" fill="#2A0B00" opacity="0.3"/>
+      <ellipse cx="48" cy="46" rx="8" ry="5" fill="#2A0B00" opacity="0.3"/>
+      ${lineRect(30, 54, 20, 2, 1)}${lineRect(31, 60, 18, 2, 1)}${lineRect(32, 66, 16, 2, 1)}${lineRect(34, 72, 12, 2, 1)}
+      <path d="M13 42 C4 54 6 76 17 90 C24 82 25 56 29 43 Z" fill="url(#bodyGrad)"/>
+      <path d="M67 42 C76 54 74 76 63 90 C56 82 55 56 51 43 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="18" cy="61" rx="7" ry="12" fill="url(#bodyGrad)"/>
+      <ellipse cx="62" cy="61" rx="7" ry="12" fill="url(#bodyGrad)"/>
+      <path d="M26 78 C38 80 39 101 36 140 L23 140 C24 119 18 94 26 78 Z" fill="url(#bodyGrad)"/>
+      <path d="M54 78 C42 80 41 101 44 140 L57 140 C56 119 62 94 54 78 Z" fill="url(#bodyGrad)"/>
+      ${lineRect(30, 93, 3, 34, 1)}${lineRect(47, 93, 3, 34, 1)}
+    `,
+    "Stocky/Powerbuilt": `
+      <circle cx="40" cy="15" r="11" fill="url(#bodyGrad)"/>
+      <rect x="34" y="25" width="12" height="8" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="37" rx="30" ry="9" fill="url(#bodyGrad)"/>
+      <path d="M13 39 C20 31 60 31 67 39 L63 88 C59 98 21 98 17 88 Z" fill="url(#bodyGrad)"/>
+      <rect x="7" y="43" width="15" height="54" rx="8" fill="url(#bodyGrad)"/>
+      <rect x="58" y="43" width="15" height="54" rx="8" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="93" rx="27" ry="9" fill="url(#bodyGrad)"/>
+      <rect x="23" y="98" width="17" height="42" rx="8" fill="url(#bodyGrad)"/>
+      <rect x="40" y="98" width="17" height="42" rx="8" fill="url(#bodyGrad)"/>
+    `,
+  };
+  return bodySvg(figures[type] || figures.Mesomorph, `${type} body type`);
 }
 
 function getBodyFatSvg(shape = 2, sex = "Male", label = "body") {
   const female = sex === "Female";
-  const id = `bfGrad${sex}${shape}`.replace(/\W/g, "");
-  const palette = shape <= 1
-    ? ["#FFD000", "#FF7000", "#FF2200"]
-    : shape <= 3
-      ? ["#FFC247", "#FF8C00", "#D85B00"]
-      : ["#D98D2B", "#B96516", "#7C3F10"];
-  const maleBodies = [
-    "M17 31 L28 24 H52 L63 31 L54 78 L47 94 H33 L26 78 Z",
-    "M19 32 C26 24 54 24 61 32 L53 78 C51 91 29 91 27 78 Z",
-    "M21 34 C27 27 53 27 59 34 L56 79 C52 94 28 94 24 79 Z",
-    "M19 35 C24 26 56 26 61 35 C67 58 61 88 40 92 C19 88 13 58 19 35Z",
-    "M17 36 C20 25 60 25 63 36 C72 62 64 96 40 99 C16 96 8 62 17 36Z",
-    "M14 38 C17 24 63 24 66 38 C77 66 67 103 40 106 C13 103 3 66 14 38Z",
+  const maleFigures = [
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="25" ry="7" fill="url(#bodyGrad)"/><path d="M15 39 L65 39 C60 57 53 73 49 76 L31 76 C27 73 20 57 15 39 Z" fill="url(#bodyGrad)"/>
+      <rect x="12" y="42" width="10" height="47" rx="5" fill="url(#bodyGrad)"/><rect x="58" y="42" width="10" height="47" rx="5" fill="url(#bodyGrad)"/>
+      <rect x="25" y="78" width="12" height="62" rx="6" fill="url(#bodyGrad)"/><rect x="43" y="78" width="12" height="62" rx="6" fill="url(#bodyGrad)"/>
+      ${lineRect(30, 49, 20, 2)}${lineRect(31, 56, 18, 2)}${lineRect(32, 63, 16, 2)}${lineRect(39, 47, 2, 29)}${lineRect(18, 59, 3, 19)}${lineRect(59, 59, 3, 19)}${lineRect(29, 96, 3, 30)}${lineRect(48, 96, 3, 30)}
+    `,
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="23" ry="7" fill="url(#bodyGrad)"/><path d="M18 39 L62 39 C58 55 53 70 50 74 L30 74 C27 70 22 55 18 39 Z" fill="url(#bodyGrad)"/>
+      <rect x="14" y="43" width="10" height="46" rx="5" fill="url(#bodyGrad)"/><rect x="56" y="43" width="10" height="46" rx="5" fill="url(#bodyGrad)"/>
+      <rect x="26" y="78" width="13" height="62" rx="6" fill="url(#bodyGrad)"/><rect x="41" y="78" width="13" height="62" rx="6" fill="url(#bodyGrad)"/>
+      ${lineRect(31, 52, 18, 2)}${lineRect(33, 60, 14, 2)}${lineRect(39, 51, 2, 21)}${lineRect(17, 61, 3, 16)}${lineRect(60, 61, 3, 16)}
+    `,
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="20" ry="7" fill="url(#bodyGrad)"/><path d="M21 40 C27 34 53 34 59 40 L56 78 C52 90 28 90 24 78 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="68" rx="17" ry="13" fill="url(#bodyGrad)"/>
+      <rect x="15" y="43" width="11" height="48" rx="6" fill="url(#bodyGrad)"/><rect x="54" y="43" width="11" height="48" rx="6" fill="url(#bodyGrad)"/>
+      <rect x="26" y="84" width="14" height="56" rx="7" fill="url(#bodyGrad)"/><rect x="40" y="84" width="14" height="56" rx="7" fill="url(#bodyGrad)"/>
+    `,
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="35" y="24" width="10" height="8" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="19" ry="7" fill="url(#bodyGrad)"/><path d="M21 39 C28 35 52 35 59 39 L60 82 C54 94 26 94 20 82 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="68" rx="23" ry="18" fill="url(#bodyGrad)"/><ellipse cx="40" cy="88" rx="23" ry="8" fill="url(#bodyGrad)"/>
+      <rect x="12" y="43" width="13" height="50" rx="7" fill="url(#bodyGrad)"/><rect x="55" y="43" width="13" height="50" rx="7" fill="url(#bodyGrad)"/>
+      <rect x="25" y="91" width="15" height="49" rx="7" fill="url(#bodyGrad)"/><rect x="40" y="91" width="15" height="49" rx="7" fill="url(#bodyGrad)"/>
+    `,
+    `
+      <circle cx="40" cy="15" r="11" fill="url(#bodyGrad)"/><rect x="35" y="25" width="10" height="7" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="20" ry="8" fill="url(#bodyGrad)"/><ellipse cx="40" cy="67" rx="30" ry="30" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="95" rx="27" ry="9" fill="url(#bodyGrad)"/><rect x="9" y="42" width="15" height="54" rx="8" fill="url(#bodyGrad)"/><rect x="56" y="42" width="15" height="54" rx="8" fill="url(#bodyGrad)"/>
+      <rect x="24" y="98" width="16" height="42" rx="8" fill="url(#bodyGrad)"/><rect x="40" y="98" width="16" height="42" rx="8" fill="url(#bodyGrad)"/>
+    `,
+    `
+      <circle cx="40" cy="15" r="12" fill="url(#bodyGrad)"/><rect x="34" y="26" width="12" height="7" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="37" rx="22" ry="9" fill="url(#bodyGrad)"/><ellipse cx="40" cy="72" rx="36" ry="36" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="103" rx="31" ry="11" fill="url(#bodyGrad)"/><rect x="5" y="43" width="17" height="58" rx="9" fill="url(#bodyGrad)"/><rect x="58" y="43" width="17" height="58" rx="9" fill="url(#bodyGrad)"/>
+      <rect x="22" y="105" width="18" height="35" rx="9" fill="url(#bodyGrad)"/><rect x="40" y="105" width="18" height="35" rx="9" fill="url(#bodyGrad)"/>
+    `,
   ];
-  const femaleBodies = [
-    "M23 33 C29 24 51 24 57 33 L52 63 C61 72 60 90 47 95 H33 C20 90 19 72 28 63 Z",
-    "M22 33 C28 25 52 25 58 33 L53 65 C62 75 59 92 47 96 H33 C21 92 18 75 27 65 Z",
-    "M21 34 C27 27 53 27 59 34 C57 48 55 61 58 73 C63 89 53 100 40 100 C27 100 17 89 22 73 C25 61 23 48 21 34Z",
-    "M19 36 C24 27 56 27 61 36 C65 53 64 74 58 89 C52 101 28 101 22 89 C16 74 15 53 19 36Z",
-    "M17 37 C21 27 59 27 63 37 C71 61 66 96 40 102 C14 96 9 61 17 37Z",
-    "M14 39 C17 26 63 26 66 39 C77 68 69 106 40 109 C11 106 3 68 14 39Z",
+  const femaleFigures = [
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="18" ry="7" fill="url(#bodyGrad)"/><path d="M24 39 C29 32 51 32 56 39 C53 53 51 65 55 78 C47 86 33 86 25 78 C29 65 27 53 24 39 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="32" cy="47" rx="6" ry="5" fill="url(#bodyGrad)"/><ellipse cx="48" cy="47" rx="6" ry="5" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="82" rx="24" ry="10" fill="url(#bodyGrad)"/><rect x="16" y="43" width="9" height="47" rx="5" fill="url(#bodyGrad)"/><rect x="55" y="43" width="9" height="47" rx="5" fill="url(#bodyGrad)"/>
+      <rect x="25" y="88" width="13" height="52" rx="6" fill="url(#bodyGrad)"/><rect x="42" y="88" width="13" height="52" rx="6" fill="url(#bodyGrad)"/>
+      ${lineRect(32, 55, 16, 2)}${lineRect(34, 63, 12, 2)}${lineRect(39, 53, 2, 22)}
+    `,
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="18" ry="7" fill="url(#bodyGrad)"/><path d="M23 39 C29 33 51 33 57 39 C54 54 52 67 57 81 C48 90 32 90 23 81 C28 67 26 54 23 39 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="32" cy="48" rx="6" ry="5" fill="url(#bodyGrad)"/><ellipse cx="48" cy="48" rx="6" ry="5" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="85" rx="25" ry="11" fill="url(#bodyGrad)"/><rect x="15" y="43" width="10" height="48" rx="5" fill="url(#bodyGrad)"/><rect x="55" y="43" width="10" height="48" rx="5" fill="url(#bodyGrad)"/>
+      <rect x="25" y="91" width="14" height="49" rx="7" fill="url(#bodyGrad)"/><rect x="41" y="91" width="14" height="49" rx="7" fill="url(#bodyGrad)"/>
+      ${lineRect(33, 58, 14, 2)}${lineRect(39, 57, 2, 17)}
+    `,
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="36" y="24" width="8" height="8" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="36" rx="17" ry="7" fill="url(#bodyGrad)"/><path d="M22 40 C29 35 51 35 58 40 C56 55 56 68 60 82 C52 96 28 96 20 82 C24 68 24 55 22 40 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="69" rx="18" ry="15" fill="url(#bodyGrad)"/><ellipse cx="40" cy="89" rx="27" ry="12" fill="url(#bodyGrad)"/>
+      <rect x="14" y="43" width="12" height="50" rx="6" fill="url(#bodyGrad)"/><rect x="54" y="43" width="12" height="50" rx="6" fill="url(#bodyGrad)"/>
+      <rect x="24" y="96" width="15" height="44" rx="7" fill="url(#bodyGrad)"/><rect x="41" y="96" width="15" height="44" rx="7" fill="url(#bodyGrad)"/>
+    `,
+    `
+      <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/><rect x="35" y="24" width="10" height="8" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="37" rx="18" ry="8" fill="url(#bodyGrad)"/><ellipse cx="40" cy="68" rx="24" ry="25" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="94" rx="30" ry="12" fill="url(#bodyGrad)"/><rect x="11" y="43" width="14" height="53" rx="7" fill="url(#bodyGrad)"/><rect x="55" y="43" width="14" height="53" rx="7" fill="url(#bodyGrad)"/>
+      <rect x="23" y="100" width="17" height="40" rx="8" fill="url(#bodyGrad)"/><rect x="40" y="100" width="17" height="40" rx="8" fill="url(#bodyGrad)"/>
+    `,
+    `
+      <circle cx="40" cy="15" r="11" fill="url(#bodyGrad)"/><rect x="35" y="25" width="10" height="7" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="37" rx="19" ry="8" fill="url(#bodyGrad)"/><ellipse cx="40" cy="70" rx="31" ry="31" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="100" rx="31" ry="13" fill="url(#bodyGrad)"/><rect x="8" y="43" width="16" height="56" rx="8" fill="url(#bodyGrad)"/><rect x="56" y="43" width="16" height="56" rx="8" fill="url(#bodyGrad)"/>
+      <rect x="22" y="106" width="18" height="34" rx="9" fill="url(#bodyGrad)"/><rect x="40" y="106" width="18" height="34" rx="9" fill="url(#bodyGrad)"/>
+    `,
+    `
+      <circle cx="40" cy="15" r="12" fill="url(#bodyGrad)"/><rect x="34" y="26" width="12" height="7" rx="3" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="38" rx="21" ry="9" fill="url(#bodyGrad)"/><ellipse cx="40" cy="75" rx="36" ry="36" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="107" rx="34" ry="13" fill="url(#bodyGrad)"/><rect x="5" y="44" width="18" height="59" rx="9" fill="url(#bodyGrad)"/><rect x="57" y="44" width="18" height="59" rx="9" fill="url(#bodyGrad)"/>
+      <rect x="21" y="112" width="19" height="28" rx="9" fill="url(#bodyGrad)"/><rect x="40" y="112" width="19" height="28" rx="9" fill="url(#bodyGrad)"/>
+    `,
   ];
-  const bodyPath = female ? femaleBodies[shape] : maleBodies[shape];
-  const definition = shape === 0
-    ? `<path d="M30 42 H50 M32 53 H48 M34 64 H46 M40 42 V76 M27 37 C32 42 35 42 39 38 M41 38 C45 42 48 42 53 37 M28 78 L52 78" stroke="#451200" stroke-width="2" stroke-linecap="round" opacity="0.85"/>`
-    : shape === 1
-      ? `<path d="M31 43 H49 M34 56 H46 M35 67 H45 M40 45 V73 M29 38 C34 42 37 42 39 39 M41 39 C43 42 46 42 51 38" stroke="#552000" stroke-width="1.7" stroke-linecap="round" opacity="0.62"/>`
-      : shape === 2
-        ? `<path d="M30 43 C35 47 45 47 50 43" stroke="#663000" stroke-width="1.6" stroke-linecap="round" opacity="0.4"/>`
-        : "";
-  const armWidth = shape <= 1 ? 7 : shape <= 3 ? 8 : 10;
-  const legWidth = shape <= 2 ? 7 : shape <= 4 ? 9 : 11;
-  return `
-    <svg viewBox="0 0 80 120" role="img" aria-label="${escapeHtml(label)} body fat reference">
-      ${svgDefs(id, palette)}
-      <circle cx="40" cy="13" r="${shape >= 4 ? 10 : 9}" fill="url(#${id})"/>
-      <path d="${bodyPath}" fill="url(#${id})"/>
-      <path d="M22 38 C12 52 12 69 21 82 M58 38 C68 52 68 69 59 82" stroke="${palette[1]}" stroke-width="${armWidth}" stroke-linecap="round"/>
-      <path d="M33 92 L29 116 M47 92 L51 116" stroke="${palette[1]}" stroke-width="${legWidth}" stroke-linecap="round"/>
-      ${definition}
-      ${shape >= 3 ? `<path d="M28 61 C34 69 46 69 52 61" stroke="#6B2D00" stroke-width="2" stroke-linecap="round" opacity="0.38"/>` : ""}
-    </svg>
-  `;
+  const figures = female ? femaleFigures : maleFigures;
+  return bodySvg(figures[shape] || figures[2], `${label} body fat reference`);
 }
 
 function renderJourneyCard() {
@@ -1752,6 +1857,7 @@ function renderBodyFatCards() {
       ${getBodyFatSvg(option.shape, onboardingSex.value, option.label)}
       <strong>${escapeHtml(option.label)}</strong>
       <small>${escapeHtml(option.range)}</small>
+      <span>${escapeHtml(option.description)}</span>
     </button>
   `).join("");
 }
@@ -1783,6 +1889,7 @@ function renderTargetBodyFatCards() {
         ${getBodyFatSvg(option.shape, onboardingSex.value, option.label)}
         <strong>${escapeHtml(option.label)}</strong>
         <small>${escapeHtml(option.range)}</small>
+        <span>${escapeHtml(option.description)}</span>
       </button>
     `;
   }).join("");
@@ -2037,6 +2144,34 @@ function bindEvents() {
     if (event.key === "Enter") signupUser();
   });
 
+  bodyTypeCards.addEventListener("click", (event) => {
+    const bodyTypeCard = event.target.closest("[data-body-type]");
+    if (!bodyTypeCard) return;
+    onboardingSelections.body_type = bodyTypeCard.dataset.bodyType;
+    renderBodyTypeCards();
+    updateOnboardingButtons();
+  });
+
+  bodyFatCards.addEventListener("click", (event) => {
+    const bodyFatCard = event.target.closest("[data-body-fat-range]");
+    if (!bodyFatCard) return;
+    onboardingSelections.body_fat_range = bodyFatCard.dataset.bodyFatRange;
+    onboardingSelections.body_fat_mid = Number(bodyFatCard.dataset.bodyFatMid);
+    onboardingSelections.target_body_fat_range = "";
+    onboardingSelections.target_body_fat_mid = 0;
+    renderBodyFatCards();
+    updateOnboardingButtons();
+  });
+
+  targetBodyFatCards.addEventListener("click", (event) => {
+    const targetBodyFatCard = event.target.closest("[data-target-body-fat-range]");
+    if (!targetBodyFatCard) return;
+    onboardingSelections.target_body_fat_range = targetBodyFatCard.dataset.targetBodyFatRange;
+    onboardingSelections.target_body_fat_mid = Number(targetBodyFatCard.dataset.targetBodyFatMid);
+    renderTargetBodyFatCards();
+    updateOnboardingButtons();
+  });
+
   navButtons.forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.navTarget));
   });
@@ -2102,34 +2237,6 @@ function bindEvents() {
         onboardingSelections.target_body_fat_range = "";
         onboardingSelections.target_body_fat_mid = 0;
       }
-      updateOnboardingButtons();
-      return;
-    }
-
-    const bodyTypeCard = event.target.closest("[data-body-type]");
-    if (bodyTypeCard) {
-      onboardingSelections.body_type = bodyTypeCard.dataset.bodyType;
-      renderBodyTypeCards();
-      updateOnboardingButtons();
-      return;
-    }
-
-    const bodyFatCard = event.target.closest("[data-body-fat-range]");
-    if (bodyFatCard) {
-      onboardingSelections.body_fat_range = bodyFatCard.dataset.bodyFatRange;
-      onboardingSelections.body_fat_mid = Number(bodyFatCard.dataset.bodyFatMid);
-      onboardingSelections.target_body_fat_range = "";
-      onboardingSelections.target_body_fat_mid = 0;
-      renderBodyFatCards();
-      updateOnboardingButtons();
-      return;
-    }
-
-    const targetBodyFatCard = event.target.closest("[data-target-body-fat-range]");
-    if (targetBodyFatCard) {
-      onboardingSelections.target_body_fat_range = targetBodyFatCard.dataset.targetBodyFatRange;
-      onboardingSelections.target_body_fat_mid = Number(targetBodyFatCard.dataset.targetBodyFatMid);
-      renderTargetBodyFatCards();
       updateOnboardingButtons();
       return;
     }
