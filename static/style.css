@@ -2004,6 +2004,7 @@ body.theme-ocean .theme-pill.active {
   inset: 0;
   z-index: 60;
   display: grid;
+  overflow-y: auto;
   place-items: center;
   padding: 20px;
   background: rgba(0, 0, 0, 0.72);
@@ -2012,7 +2013,9 @@ body.theme-ocean .theme-pill.active {
 
 .onboarding-card {
   width: min(560px, 100%);
-  overflow: hidden;
+  max-height: 90vh;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -2029,12 +2032,12 @@ body.theme-ocean .theme-pill.active {
   display: grid;
   width: 16.667%;
   min-width: 16.667%;
-  gap: 18px;
-  padding: 24px;
+  gap: 12px;
+  padding: 18px;
 }
 
 .onboarding-step h2 {
-  font-size: clamp(1.8rem, 6vw, 3rem);
+  font-size: clamp(1.5rem, 5vw, 2.35rem);
 }
 
 .onboarding-pills {
@@ -2059,7 +2062,7 @@ body.theme-ocean .theme-pill.active {
 .visual-card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .visual-card-grid.three-up {
@@ -2069,14 +2072,14 @@ body.theme-ocean .theme-pill.active {
 .visual-card {
   display: grid;
   justify-items: center;
-  gap: 9px;
-  min-height: 230px;
+  gap: 6px;
+  min-height: 154px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
-  padding: 12px;
+  padding: 8px;
   text-align: center;
 }
 
@@ -2095,21 +2098,24 @@ body.theme-ocean .theme-pill.active {
 .journey-body svg {
   width: 100%;
   max-width: 120px;
-  max-height: 140px;
+  max-height: 90px;
 }
 
 .visual-card strong {
   color: var(--text);
+  font-size: 12px;
 }
 
 .visual-card small,
 .visual-card span {
   color: var(--text-secondary);
+  font-size: 11px;
   line-height: 1.45;
 }
 
 .visual-card small {
   color: var(--primary);
+  font-size: 11px;
   font-weight: 800;
 }
 

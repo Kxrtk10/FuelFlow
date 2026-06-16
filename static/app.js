@@ -765,12 +765,12 @@ function getSilhouetteSvg(shape = 2, label = "body") {
   return getBodyFatSvg(shape, readUser()?.sex || onboardingSex?.value || "Male", label);
 }
 
-function bodySvg(content, label = "body reference") {
+function bodySvg(content, label = "body reference", fixedGradientId = "") {
   bodySvg.counter = (bodySvg.counter || 0) + 1;
-  const gradientId = `bodyGrad${bodySvg.counter}`;
+  const gradientId = fixedGradientId || `bodyGrad${bodySvg.counter}`;
   const scopedContent = content.replaceAll("url(#bodyGrad)", `url(#${gradientId})`);
   return `
-    <svg width="100%" height="120" viewBox="0 0 80 140" role="img" aria-label="${escapeHtml(label)}">
+    <svg width="100%" height="90" viewBox="0 0 80 140" role="img" aria-label="${escapeHtml(label)}">
       <defs>
         <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#FF8C00"/>
@@ -826,16 +826,16 @@ function getBodyTypeSvg(type) {
       <path d="M55 80 C45 82 42 101 44 140 L55 140 C55 118 60 95 55 80 Z" fill="url(#bodyGrad)"/>
     `,
     "Endomorph": `
-      <circle cx="40" cy="15" r="11" fill="url(#bodyGrad)"/>
-      <rect x="35" y="25" width="10" height="7" rx="3" fill="url(#bodyGrad)"/>
-      <ellipse cx="40" cy="36" rx="22" ry="8" fill="url(#bodyGrad)"/>
-      <ellipse cx="40" cy="63" rx="29" ry="32" fill="url(#bodyGrad)"/>
-      <ellipse cx="40" cy="72" rx="33" ry="23" fill="url(#bodyGrad)"/>
-      <ellipse cx="40" cy="91" rx="29" ry="10" fill="url(#bodyGrad)"/>
-      <rect x="12" y="42" width="13" height="50" rx="7" fill="url(#bodyGrad)"/>
-      <rect x="55" y="42" width="13" height="50" rx="7" fill="url(#bodyGrad)"/>
-      <rect x="26" y="94" width="14" height="46" rx="7" fill="url(#bodyGrad)"/>
-      <rect x="40" y="94" width="14" height="46" rx="7" fill="url(#bodyGrad)"/>
+      <circle cx="40" cy="12" r="9" fill="url(#bodyGrad)"/>
+      <rect x="37" y="20" width="6" height="6" rx="2" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="30" rx="18" ry="6" fill="url(#bodyGrad)"/>
+      <rect x="24" y="30" width="32" height="12" rx="4" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="58" rx="22" ry="18" fill="url(#bodyGrad)"/>
+      <ellipse cx="40" cy="74" rx="19" ry="7" fill="url(#bodyGrad)"/>
+      <ellipse cx="17" cy="50" rx="6" ry="16" fill="url(#bodyGrad)"/>
+      <ellipse cx="63" cy="50" rx="6" ry="16" fill="url(#bodyGrad)"/>
+      <ellipse cx="32" cy="100" rx="8" ry="18" fill="url(#bodyGrad)"/>
+      <ellipse cx="48" cy="100" rx="8" ry="18" fill="url(#bodyGrad)"/>
     `,
     "Athletic/Fit": `
       <circle cx="40" cy="15" r="10" fill="url(#bodyGrad)"/>
@@ -854,18 +854,24 @@ function getBodyTypeSvg(type) {
       ${lineRect(30, 93, 3, 34, 1)}${lineRect(47, 93, 3, 34, 1)}
     `,
     "Stocky/Powerbuilt": `
-      <circle cx="40" cy="15" r="11" fill="url(#bodyGrad)"/>
-      <rect x="34" y="25" width="12" height="8" rx="3" fill="url(#bodyGrad)"/>
-      <ellipse cx="40" cy="37" rx="30" ry="9" fill="url(#bodyGrad)"/>
-      <path d="M13 39 C20 31 60 31 67 39 L63 88 C59 98 21 98 17 88 Z" fill="url(#bodyGrad)"/>
-      <rect x="7" y="43" width="15" height="54" rx="8" fill="url(#bodyGrad)"/>
-      <rect x="58" y="43" width="15" height="54" rx="8" fill="url(#bodyGrad)"/>
-      <ellipse cx="40" cy="93" rx="27" ry="9" fill="url(#bodyGrad)"/>
-      <rect x="23" y="98" width="17" height="42" rx="8" fill="url(#bodyGrad)"/>
-      <rect x="40" y="98" width="17" height="42" rx="8" fill="url(#bodyGrad)"/>
+      <circle cx="40" cy="11" r="9" fill="url(#bodyGrad)"/>
+      <rect x="36" y="19" width="8" height="6" rx="2" fill="url(#bodyGrad)"/>
+      <rect x="14" y="24" width="52" height="10" rx="4" fill="url(#bodyGrad)"/>
+      <ellipse cx="16" cy="28" rx="6" ry="8" fill="url(#bodyGrad)"/>
+      <ellipse cx="64" cy="28" rx="6" ry="8" fill="url(#bodyGrad)"/>
+      <rect x="20" y="34" width="40" height="32" rx="3" fill="url(#bodyGrad)"/>
+      <rect x="22" y="64" width="36" height="10" rx="3" fill="url(#bodyGrad)"/>
+      <rect x="8" y="26" width="12" height="36" rx="4" fill="url(#bodyGrad)"/>
+      <rect x="60" y="26" width="12" height="36" rx="4" fill="url(#bodyGrad)"/>
+      <rect x="22" y="74" width="14" height="36" rx="3" fill="url(#bodyGrad)"/>
+      <rect x="44" y="74" width="14" height="36" rx="3" fill="url(#bodyGrad)"/>
     `,
   };
-  return bodySvg(figures[type] || figures.Mesomorph, `${type} body type`);
+  const fixedIds = {
+    "Endomorph": "bodyGradEndo",
+    "Stocky/Powerbuilt": "bodyGradStocky",
+  };
+  return bodySvg(figures[type] || figures.Mesomorph, `${type} body type`, fixedIds[type] || "");
 }
 
 function getBodyFatSvg(shape = 2, sex = "Male", label = "body") {
