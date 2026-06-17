@@ -17,6 +17,19 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+}
+
 html {
   background: var(--background);
 }
@@ -2023,25 +2036,10 @@ body.theme-ocean .theme-pill.active {
   overflow-x: hidden;
   overflow-y: auto;
   scroll-behavior: smooth;
-  scrollbar-color: var(--primary) transparent;
-  scrollbar-width: thin;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: 0 22px 70px rgba(255, 69, 0, 0.18);
-}
-
-.onboarding-card::-webkit-scrollbar {
-  width: 6px;
-}
-
-.onboarding-card::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.onboarding-card::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: var(--primary);
 }
 
 .onboarding-track {
