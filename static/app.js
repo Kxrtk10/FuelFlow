@@ -770,7 +770,7 @@ function bodySvg(content, label = "body reference", fixedGradientId = "") {
   const gradientId = fixedGradientId || `bodyGrad${bodySvg.counter}`;
   const scopedContent = content.replaceAll("url(#bodyGrad)", `url(#${gradientId})`);
   return `
-    <svg width="100%" height="90" viewBox="0 0 80 140" role="img" aria-label="${escapeHtml(label)}">
+    <svg width="100%" height="80" viewBox="0 0 80 140" role="img" aria-label="${escapeHtml(label)}">
       <defs>
         <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#FF8C00"/>
@@ -1760,6 +1760,7 @@ function getDefaultOnboardingSelections() {
 function setOnboardingStep(step) {
   onboardingStep = step;
   onboardingTrack.style.transform = `translateX(-${step * 16.667}%)`;
+  onboardingTrack.closest(".onboarding-card")?.scrollTo({ top: 0, behavior: "smooth" });
   if (step === 3) {
     renderBodyTypeCards();
   }

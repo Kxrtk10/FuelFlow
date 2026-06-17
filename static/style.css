@@ -309,6 +309,12 @@ button:hover {
   line-height: 1.5;
 }
 
+.auth-hero-copy .auth-panel-tagline {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
 .auth-feature-pills {
   display: flex;
   flex-wrap: wrap;
@@ -2013,13 +2019,29 @@ body.theme-ocean .theme-pill.active {
 
 .onboarding-card {
   width: min(560px, 100%);
-  max-height: 90vh;
+  max-height: 95vh;
   overflow-x: hidden;
   overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-color: var(--primary) transparent;
+  scrollbar-width: thin;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: 0 22px 70px rgba(255, 69, 0, 0.18);
+}
+
+.onboarding-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.onboarding-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.onboarding-card::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--primary);
 }
 
 .onboarding-track {
@@ -2037,7 +2059,7 @@ body.theme-ocean .theme-pill.active {
 }
 
 .onboarding-step h2 {
-  font-size: clamp(1.5rem, 5vw, 2.35rem);
+  font-size: 22px;
 }
 
 .onboarding-pills {
@@ -2062,7 +2084,7 @@ body.theme-ocean .theme-pill.active {
 .visual-card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(120px, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .visual-card-grid.three-up {
@@ -2098,7 +2120,7 @@ body.theme-ocean .theme-pill.active {
 .journey-body svg {
   width: 100%;
   max-width: 120px;
-  max-height: 90px;
+  max-height: 80px;
 }
 
 .visual-card strong {
@@ -2122,7 +2144,7 @@ body.theme-ocean .theme-pill.active {
 .body-fat-subtitle {
   margin: 0 0 14px;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 12px;
   line-height: 1.55;
 }
 
