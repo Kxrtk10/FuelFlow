@@ -111,15 +111,11 @@
 
       <main class="view-stage">
         <section id="homeView" class="view active" data-view="home">
-          <div class="hero-grid">
-            <div class="hero-copy">
-              <p class="eyebrow flame">Warm awareness</p>
-              <h2 id="homeHeading">Food is fuel. Feelings matter.</h2>
-              <p id="homeSubheading" class="hero-text">Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.</p>
-              <div id="homeMotivation" class="home-motivation hidden-soft">
-                <p id="streakText" class="streak-text">Start today's streak 🔥</p>
-                <p id="dailyQuoteText" class="daily-quote"></p>
-              </div>
+          <section id="dailyPulse" class="daily-pulse card">
+            <div class="pulse-main">
+              <p class="eyebrow flame">Daily Pulse</p>
+              <h2 id="homeHeading">Good morning &#128293;</h2>
+              <p id="homeSubheading" class="hero-text">Your supportive check-in for food, mood, energy, and momentum.</p>
               <div id="dailyMoodCheckIn" class="daily-mood-check hidden-soft">
                 <span>How are you feeling today?</span>
                 <div class="daily-mood-pills" aria-label="Daily mood check-in">
@@ -130,13 +126,73 @@
                   <button type="button" data-daily-mood="🔥">🔥</button>
                 </div>
               </div>
-              <button class="gradient-button" type="button" data-nav-target="log">Start Tracking</button>
+              <button id="quickSizzleCheckIn" class="gradient-button" type="button">Quick Sizzle check-in</button>
             </div>
-            <aside class="quote-card">
-              <span class="quote-icon">✦</span>
-              <p id="quoteText"></p>
-            </aside>
-          </div>
+            <div id="homeMotivation" class="pulse-stats hidden-soft">
+              <article>
+                <span>Streak</span>
+                <strong id="streakText">Start today's streak &#128293;</strong>
+              </article>
+              <article>
+                <span>Today's mood</span>
+                <strong id="homeMoodText">Check in when ready</strong>
+              </article>
+              <article>
+                <span>Energy</span>
+                <strong id="homeEnergyText">No meals yet</strong>
+              </article>
+              <article>
+                <span>Today's focus</span>
+                <strong id="homeFocusText">Log one honest meal</strong>
+              </article>
+            </div>
+          </section>
+
+          <section id="recommendedActionCard" class="card recommended-action-card"></section>
+
+          <section id="dailyWellbeingCard" class="card daily-wellbeing-card"></section>
+
+          <details class="home-secondary-content">
+            <summary>More FuelFlow tools and learning</summary>
+
+          <section id="habitQuickLogCard" class="card habit-quick-log-card"></section>
+
+          <section id="socialPlannerCard" class="card social-planner-card"></section>
+
+          <section id="todayInsightCard" class="card home-insight-card"></section>
+
+          <section id="homeMotivationCard" class="card home-coach-card">
+            <p class="eyebrow flame">Motivation</p>
+            <p id="dailyQuoteText" class="daily-quote"></p>
+          </section>
+
+          <section id="homeLearningStrip" class="home-learning-section">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow flame">Learn Something New</p>
+              <h2>Small lessons, real life food</h2>
+              <p>Swipe through supportive ideas from FuelFlow's food relationship library.</p>
+            </div>
+            <div id="homeLearningCards" class="learning-strip"></div>
+          </section>
+
+          <section id="cuisineSpotlight" class="card cuisine-spotlight"></section>
+
+          <section id="communityStoryCard" class="card community-story-card"></section>
+
+          </details>
+
+          <section class="home-quick-actions">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow flame">One small action</p>
+              <h2>What do you want to do now?</h2>
+            </div>
+            <div class="quick-action-grid">
+              <button class="quick-action-button" type="button" data-nav-target="log"><span>+</span>Log Meal</button>
+              <button class="quick-action-button" type="button" data-nav-target="sizzle"><span>&#128293;</span>Ask Sizzle</button>
+              <button class="quick-action-button" type="button" data-nav-target="plan"><span>□</span>View Plan</button>
+              <button class="quick-action-button" type="button" data-nav-target="insights"><span>✦</span>View Weekly Report</button>
+            </div>
+          </section>
 
           <section id="journeyCard" class="card journey-card hidden-soft"></section>
 
@@ -152,24 +208,7 @@
           </section>
 
           <section id="profileCard" class="card profile-card hidden-soft"></section>
-
-          <div class="feature-grid">
-            <article class="feature-card">
-              <span class="feature-icon">🍲</span>
-              <h3>Log Your Meals</h3>
-              <p>Capture what you ate in seconds, from full meals to coffee runs.</p>
-            </article>
-            <article class="feature-card">
-              <span class="feature-icon">💛</span>
-              <h3>Track Your Mood</h3>
-              <p>Notice how food, timing, energy, and emotions connect.</p>
-            </article>
-            <article class="feature-card">
-              <span class="feature-icon">🔥</span>
-              <h3>Get AI Insights</h3>
-              <p>Receive weekly reflections that feel human, useful, and kind.</p>
-            </article>
-          </div>
+          <div id="exploreGrid" class="explore-grid hidden-soft"></div>
         </section>
 
         <section id="logView" class="view" data-view="log">
@@ -275,26 +314,288 @@
         <section id="insightsView" class="view" data-view="insights">
           <div class="section-heading">
             <p class="eyebrow flame">Weekly reflection</p>
-            <h2>AI insights</h2>
+            <h2>Weekly Report</h2>
           </div>
 
-          <div id="insightsEmpty" class="card insight-empty">
+          <section id="unifiedReportDashboard" class="analytics-dashboard unified-report-dashboard">
+            <div class="analytics-top">
+              <div>
+                <p class="eyebrow flame">Unified weekly report</p>
+                <h3>One clear read on your week</h3>
+                <p>Food, mood, timing, recovery, habits, social balance, and plan follow-through in one place.</p>
+              </div>
+              <button id="generateUnifiedReport" class="gradient-button compact" type="button">Generate Weekly Report</button>
+            </div>
+
+            <div id="unifiedReportEmpty" class="card insight-empty">
+              <h3>Your weekly report is ready when you have a few signals.</h3>
+              <p>Log meals, check in, or mark plan meals to make the report more useful.</p>
+            </div>
+
+            <div id="unifiedReportLoading" class="loading-card hidden-soft">
+              <div class="fiery-orb"></div>
+              <p>Sizzle is pulling your week together...</p>
+            </div>
+
+            <div id="unifiedReportContent" class="hidden-soft">
+              <section class="card analytics-summary-card unified-summary-card">
+                <div class="report-history-heading">
+                  <div>
+                    <h3>Sizzle summary</h3>
+                    <p id="unifiedReportFocus"></p>
+                  </div>
+                  <button class="clear-chat-button sizzle-context-button" type="button" data-sizzle-prompt="Explain my weekly report and tell me what to do next.">Ask Sizzle About This</button>
+                </div>
+                <p id="unifiedReportSummary"></p>
+                <div id="unifiedReportActions" class="recommendation-list"></div>
+              </section>
+
+              <div class="weekly-report-tabs">
+                <button class="active" type="button" data-weekly-section="overview">Overview</button>
+                <button type="button" data-weekly-section="food_mood">Food & Mood</button>
+                <button type="button" data-weekly-section="timing">Timing</button>
+                <button type="button" data-weekly-section="recovery">Recovery</button>
+                <button type="button" data-weekly-section="habits">Habits</button>
+                <button type="button" data-weekly-section="social">Social Balance</button>
+              </div>
+
+              <div id="unifiedReportSectionGrid" class="analytics-grid"></div>
+            </div>
+
+            <section class="card report-history-card">
+              <div class="report-history-heading">
+                <div>
+                  <h3>Report history</h3>
+                  <p>One archive for your weekly FuelFlow reflections.</p>
+                </div>
+                <button id="refreshUnifiedHistory" class="clear-chat-button" type="button">Refresh</button>
+              </div>
+              <div id="unifiedReportHistory" class="report-history-list"></div>
+            </section>
+          </section>
+
+          <section id="analyticsDashboard" class="analytics-dashboard legacy-report-section">
+            <div class="analytics-top">
+              <div>
+                <p class="eyebrow flame">Behavioral dashboard</p>
+                <h3>Your patterns, in plain English</h3>
+                <p>FuelFlow calculates the numbers first, then Sizzle helps interpret what they mean.</p>
+              </div>
+              <button id="generateAnalyticsReport" class="gradient-button compact" type="button">Generate Weekly Report</button>
+            </div>
+
+            <div id="analyticsEmpty" class="card insight-empty">
+              <h3>Log at least 3 meals to unlock your dashboard.</h3>
+              <p>Mood, energy, timing, and alcohol patterns become clearer once FuelFlow has a little weekly rhythm.</p>
+            </div>
+
+            <div id="analyticsLoading" class="loading-card hidden-soft">
+              <div class="fiery-orb"></div>
+              <p>FuelFlow is calculating your patterns...</p>
+            </div>
+
+            <div id="analyticsContent" class="hidden-soft">
+              <div id="analyticsMetricGrid" class="analytics-grid"></div>
+              <article class="card analytics-summary-card">
+                <h3>Personalized AI summary</h3>
+                <p id="analyticsSummaryText"></p>
+                <div id="analyticsRecommendations" class="recommendation-list"></div>
+              </article>
+            </div>
+
+            <section class="card report-history-card">
+              <div class="report-history-heading">
+                <div>
+                  <h3>Previous reports</h3>
+                  <p>Revisit your weekly patterns whenever you need a reset.</p>
+                </div>
+                <button id="refreshAnalyticsHistory" class="clear-chat-button" type="button">Refresh</button>
+              </div>
+              <div id="analyticsReportHistory" class="report-history-list"></div>
+            </section>
+          </section>
+
+          <section id="timingDashboard" class="analytics-dashboard timing-dashboard legacy-report-section">
+            <div class="analytics-top">
+              <div>
+                <p class="eyebrow flame">Food timing coach</p>
+                <h3>Your meal rhythm</h3>
+                <p>FuelFlow studies when you eat, how long gaps last, and how timing connects to energy and mood.</p>
+              </div>
+              <button id="generateTimingReport" class="gradient-button compact" type="button">Generate Timing Report</button>
+            </div>
+
+            <div id="timingEmpty" class="card insight-empty">
+              <h3>Log at least 3 meals to unlock timing patterns.</h3>
+              <p>Breakfast rhythm, long gaps, and late-night patterns get clearer as your week fills in.</p>
+            </div>
+
+            <div id="timingLoading" class="loading-card hidden-soft">
+              <div class="fiery-orb"></div>
+              <p>FuelFlow is reading your meal rhythm...</p>
+            </div>
+
+            <div id="timingContent" class="hidden-soft">
+              <div id="timingMetricGrid" class="analytics-grid timing-grid"></div>
+              <article class="card analytics-summary-card">
+                <h3>Food timing insight</h3>
+                <p id="timingSummaryText"></p>
+                <div id="timingSuggestions" class="recommendation-list"></div>
+              </article>
+            </div>
+
+            <section class="card report-history-card">
+              <div class="report-history-heading">
+                <div>
+                  <h3>Timing report history</h3>
+                  <p>Come back to your rhythm when you want a calmer eating structure.</p>
+                </div>
+                <button id="refreshTimingHistory" class="clear-chat-button" type="button">Refresh</button>
+              </div>
+              <div id="timingReportHistory" class="report-history-list"></div>
+            </section>
+          </section>
+
+          <section id="recoveryDashboard" class="analytics-dashboard recovery-dashboard legacy-report-section">
+            <div class="analytics-top">
+              <div>
+                <p class="eyebrow flame">Sleep & recovery</p>
+                <h3>Your wellbeing rhythm</h3>
+                <p>FuelFlow connects sleep, stress, cravings, recovery, meal timing, and energy.</p>
+              </div>
+              <button id="generateRecoveryReport" class="gradient-button compact" type="button">Generate Recovery Report</button>
+            </div>
+
+            <div id="recoveryEmpty" class="card insight-empty">
+              <h3>Complete a quick check-in to unlock recovery patterns.</h3>
+              <p>Sleep, stress, cravings, and readiness only need a few seconds a day to become useful signals.</p>
+            </div>
+
+            <div id="recoveryLoading" class="loading-card hidden-soft">
+              <div class="fiery-orb"></div>
+              <p>FuelFlow is reading your wellbeing rhythm...</p>
+            </div>
+
+            <div id="recoveryContent" class="hidden-soft">
+              <div id="recoveryMetricGrid" class="analytics-grid recovery-grid"></div>
+              <article class="card analytics-summary-card">
+                <h3>Sleep & recovery insight</h3>
+                <p id="recoverySummaryText"></p>
+                <div id="recoverySuggestions" class="recommendation-list"></div>
+              </article>
+            </div>
+
+            <section class="card report-history-card">
+              <div class="report-history-heading">
+                <div>
+                  <h3>Recovery report history</h3>
+                  <p>Revisit how sleep and recovery shaped your week.</p>
+                </div>
+                <button id="refreshRecoveryHistory" class="clear-chat-button" type="button">Refresh</button>
+              </div>
+              <div id="recoveryReportHistory" class="report-history-list"></div>
+            </section>
+          </section>
+
+          <section id="habitDashboard" class="analytics-dashboard habit-dashboard legacy-report-section">
+            <div class="analytics-top">
+              <div>
+                <p class="eyebrow flame">Habit intelligence</p>
+                <h3>Triggers, cravings, and better decisions</h3>
+                <p>FuelFlow connects habit events with mood, stress, sleep, alcohol, and meal timing.</p>
+              </div>
+              <button id="generateHabitReport" class="gradient-button compact" type="button">Generate Habit Report</button>
+            </div>
+
+            <div id="habitEmpty" class="card insight-empty">
+              <h3>Quick-log a habit event to unlock patterns.</h3>
+              <p>Smoking, cravings, alcohol, and future habits become useful signals when they are tracked without judgment.</p>
+            </div>
+
+            <div id="habitLoading" class="loading-card hidden-soft">
+              <div class="fiery-orb"></div>
+              <p>FuelFlow is connecting your habit patterns...</p>
+            </div>
+
+            <div id="habitContent" class="hidden-soft">
+              <div id="habitMetricGrid" class="analytics-grid habit-grid"></div>
+              <article class="card analytics-summary-card">
+                <h3>Habit intelligence summary</h3>
+                <p id="habitSummaryText"></p>
+                <div id="habitSuggestions" class="recommendation-list"></div>
+              </article>
+            </div>
+
+            <section class="card report-history-card">
+              <div class="report-history-heading">
+                <div>
+                  <h3>Habit report history</h3>
+                  <p>Revisit your patterns whenever you want a calmer strategy.</p>
+                </div>
+                <button id="refreshHabitHistory" class="clear-chat-button" type="button">Refresh</button>
+              </div>
+              <div id="habitReportHistory" class="report-history-list"></div>
+            </section>
+          </section>
+
+          <section id="socialDashboard" class="analytics-dashboard social-dashboard legacy-report-section">
+            <div class="analytics-top">
+              <div>
+                <p class="eyebrow flame">Drink smarter & social eating</p>
+                <h3>Enjoy life, stay aligned</h3>
+                <p>FuelFlow reads alcohol, social patterns, recovery, sleep, and timing as planning signals, never judgment.</p>
+              </div>
+              <button id="generateSocialReport" class="gradient-button compact" type="button">Generate Social Report</button>
+            </div>
+
+            <div id="socialEmpty" class="card insight-empty">
+              <h3>Log an alcohol event or plan a social night to unlock this report.</h3>
+              <p>Parties, dinners, celebrations, and weekends can fit your goals when you have a simple before-during-after plan.</p>
+            </div>
+
+            <div id="socialLoading" class="loading-card hidden-soft">
+              <div class="fiery-orb"></div>
+              <p>FuelFlow is balancing social life with your goals...</p>
+            </div>
+
+            <div id="socialContent" class="hidden-soft">
+              <div id="socialMetricGrid" class="analytics-grid social-grid"></div>
+              <article class="card analytics-summary-card">
+                <h3>Social balance summary</h3>
+                <p id="socialSummaryText"></p>
+                <div id="socialSuggestions" class="recommendation-list"></div>
+              </article>
+            </div>
+
+            <section class="card report-history-card">
+              <div class="report-history-heading">
+                <div>
+                  <h3>Social balance history</h3>
+                  <p>Revisit how social events, drinks, recovery, and goals worked together.</p>
+                </div>
+                <button id="refreshSocialHistory" class="clear-chat-button" type="button">Refresh</button>
+              </div>
+              <div id="socialReportHistory" class="report-history-list"></div>
+            </section>
+          </section>
+
+          <div id="insightsEmpty" class="card insight-empty legacy-report-section">
             <h3>Log a few meals first and come back for your insight.</h3>
             <p>FuelFlow works best when it can read a little rhythm from your week.</p>
           </div>
 
-          <button id="insightsButton" class="gradient-button full" type="button">Get My Weekly Insight</button>
+          <button id="insightsButton" class="gradient-button full legacy-report-section" type="button">Get My Weekly Insight</button>
 
-          <div id="insightsHint" class="card insight-empty hidden-soft">
+          <div id="insightsHint" class="card insight-empty hidden-soft legacy-report-section">
             <h3>Log at least 3 meals first and come back — your insight will be much more meaningful.</h3>
           </div>
 
-          <div id="insightsLoading" class="loading-card hidden-soft">
+          <div id="insightsLoading" class="loading-card hidden-soft legacy-report-section">
             <div class="fiery-orb"></div>
             <p>FuelFlow is reading your week...</p>
           </div>
 
-          <div id="insightsResult" class="hidden-soft">
+          <div id="insightsResult" class="hidden-soft legacy-report-section">
             <article class="card insight-card">
               <h3>Your weekly insight</h3>
               <p id="insightText"></p>
@@ -302,7 +603,16 @@
             <div id="factsGrid" class="facts-grid"></div>
           </div>
 
-          <section id="sizzleSection" class="card sizzle-section">
+        </section>
+
+        <section id="sizzleView" class="view" data-view="sizzle">
+          <div class="section-heading">
+            <p class="eyebrow flame">Your AI companion</p>
+            <h2>Sizzle &#128293;</h2>
+            <p>Ask about meals, cravings, recipes, goals, recovery, or how to make your next choice easier.</p>
+          </div>
+
+          <section id="sizzleSection" class="card sizzle-section standalone-sizzle">
             <div class="sizzle-header">
               <div class="sizzle-title">
                 <span class="sizzle-mark">🍴🔥</span>
@@ -324,14 +634,6 @@
               <button class="gradient-button compact" type="submit">➜</button>
             </form>
           </section>
-        </section>
-
-        <section id="exploreView" class="view" data-view="explore">
-          <div class="section-heading">
-            <p class="eyebrow flame">Curious plates</p>
-            <h2>Food from around the world</h2>
-          </div>
-          <div id="exploreGrid" class="explore-grid"></div>
         </section>
 
         <section id="planView" class="view" data-view="plan">
@@ -437,6 +739,8 @@
           </div>
 
           <section id="settingsProfile" class="card settings-section"></section>
+
+          <section id="sizzleMemorySettings" class="card settings-section"></section>
 
           <section class="card settings-section">
             <div class="settings-section-head">
@@ -585,7 +889,7 @@
       <button class="nav-item" type="button" data-nav-target="log"><span>➕</span>Log</button>
       <button class="nav-item" type="button" data-nav-target="today"><span>☀️</span>Today</button>
       <button class="nav-item" type="button" data-nav-target="insights"><span>✨</span>Insights</button>
-      <button class="nav-item" type="button" data-nav-target="explore"><span>🌍</span>Explore</button>
+      <button class="nav-item" type="button" data-nav-target="sizzle"><span>🔥</span>Sizzle</button>
       <button class="nav-item" type="button" data-nav-target="plan"><span>📋</span>Plan</button>
       <button class="nav-item" type="button" data-nav-target="settings"><span>⚙️</span>Settings</button>
     </nav>

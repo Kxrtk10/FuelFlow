@@ -1,3 +1,15 @@
+html,
+body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+}
+
 :root {
   --background: #0d0d0d;
   --surface: #1a1a1a;
@@ -548,6 +560,212 @@ p {
   line-height: 1.75;
 }
 
+.daily-pulse {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  gap: 18px;
+  align-items: stretch;
+  padding: clamp(22px, 4vw, 34px);
+  background:
+    radial-gradient(circle at top right, rgba(255, 69, 0, 0.16), transparent 38%),
+    rgba(26, 26, 26, 0.94);
+}
+
+.pulse-main h2 {
+  margin-top: 6px;
+  font-size: clamp(2rem, 6vw, 4.4rem);
+  line-height: 0.98;
+}
+
+.pulse-main .hero-text {
+  margin: 16px 0 20px;
+}
+
+.pulse-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pulse-stats article {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(36, 36, 36, 0.76);
+  padding: 14px;
+}
+
+.pulse-stats span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pulse-stats strong {
+  color: var(--text);
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
+  line-height: 1.25;
+}
+
+.home-insight-card,
+.home-coach-card,
+.cuisine-spotlight,
+.community-story-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 20px;
+}
+
+.home-insight-card {
+  border-left: 4px solid var(--primary);
+}
+
+.home-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.home-card-heading h3 {
+  margin: 4px 0 0;
+}
+
+.home-card-heading > span {
+  border: 1px solid rgba(255, 140, 0, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 69, 0, 0.12);
+  color: var(--secondary);
+  font-weight: 900;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.home-insight-card p,
+.home-coach-card p,
+.cuisine-spotlight p,
+.community-story-card p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+.home-coach-card {
+  background: linear-gradient(145deg, rgba(36, 36, 36, 0.96), rgba(255, 69, 0, 0.08));
+}
+
+.home-learning-section,
+.home-quick-actions {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.learning-strip {
+  display: grid;
+  grid-auto-columns: minmax(250px, 34%);
+  grid-auto-flow: column;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 4px;
+}
+
+.learning-card {
+  scroll-snap-align: start;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(26, 26, 26, 0.92);
+  padding: 18px;
+}
+
+.learning-card > span {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--surface2);
+  font-size: 1.25rem;
+}
+
+.learning-card h3 {
+  margin: 4px 0 8px;
+}
+
+.learning-card p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.learning-card strong,
+.spotlight-lesson {
+  display: block;
+  margin-top: 12px;
+  color: var(--secondary);
+  line-height: 1.55;
+}
+
+.spotlight-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spotlight-list span {
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 8px 10px;
+}
+
+.community-story-card {
+  border-color: rgba(255, 215, 0, 0.45);
+}
+
+.community-story-card small {
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.quick-action-button {
+  display: grid;
+  min-height: 96px;
+  place-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 140, 0, 0.28);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(36, 36, 36, 0.96), rgba(26, 26, 26, 0.96));
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.quick-action-button:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  background: rgba(255, 69, 0, 0.12);
+}
+
+.quick-action-button span {
+  color: var(--secondary);
+  font-size: 1.45rem;
+}
+
 .home-motivation {
   display: grid;
   gap: 8px;
@@ -599,6 +817,254 @@ p {
   padding: 0;
 }
 
+.daily-mood-pills button.active,
+.daily-mood-pills button:hover {
+  border-color: var(--primary);
+  background: rgba(255, 69, 0, 0.18);
+}
+
+.daily-wellbeing-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.wellbeing-form {
+  display: grid;
+  gap: 14px;
+}
+
+.wellbeing-question {
+  display: grid;
+  gap: 8px;
+}
+
+.wellbeing-question > span,
+.wellbeing-slider > span,
+.wellbeing-time-row label,
+.wellbeing-inline label,
+.wellbeing-note {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.wellbeing-inline,
+.wellbeing-time-row,
+.wellbeing-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.wellbeing-inline {
+  grid-template-columns: minmax(90px, 0.7fr) minmax(160px, 1.3fr) auto;
+  align-items: center;
+}
+
+.wellbeing-time-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wellbeing-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.wellbeing-inline input,
+.wellbeing-time-row input,
+.wellbeing-note textarea {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.wellbeing-slider {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(36, 36, 36, 0.65);
+  padding: 12px;
+}
+
+.wellbeing-slider span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.wellbeing-slider strong,
+.wellbeing-inline > strong {
+  color: var(--secondary);
+}
+
+.wellbeing-slider small,
+.wellbeing-more summary,
+.wellbeing-form .analytics-muted {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.wellbeing-more {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+}
+
+.wellbeing-more summary {
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.wellbeing-more .wellbeing-grid,
+.wellbeing-note {
+  margin-top: 12px;
+}
+
+.habit-quick-log-card,
+.social-planner-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.habit-form {
+  display: grid;
+  gap: 12px;
+}
+
+.habit-type-pills,
+.habit-trigger-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.habit-type-pills button,
+.habit-trigger-row button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 900;
+  padding: 8px 10px;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.habit-type-pills button.active,
+.habit-trigger-row button.active,
+.habit-type-pills button:hover,
+.habit-trigger-row button:hover {
+  border-color: var(--primary);
+  background: rgba(255, 69, 0, 0.16);
+  color: var(--text);
+}
+
+.habit-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.habit-form label {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.habit-form input,
+.habit-form select {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.habit-form strong {
+  color: var(--secondary);
+}
+
+.habit-mini-list {
+  display: grid;
+  gap: 8px;
+}
+
+.habit-mini-list span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid rgba(255, 140, 0, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  padding: 9px 10px;
+}
+
+.habit-mini-list strong {
+  color: var(--secondary);
+  font-size: 0.95rem;
+}
+
+.social-plan-result {
+  display: grid;
+  gap: 12px;
+}
+
+.drink-reference-strip {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(255, 140, 0, 0.32);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 69, 0, 0.16), rgba(255, 140, 0, 0.08));
+  padding: 12px;
+}
+
+.drink-reference-strip span,
+.social-phase-card h4 {
+  color: var(--secondary);
+  font-weight: 900;
+}
+
+.drink-reference-strip strong {
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+.drink-reference-strip small {
+  color: var(--text-secondary);
+}
+
+.social-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.social-phase-card {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 12px;
+}
+
+.social-phase-card h4,
+.social-phase-card p {
+  margin: 0;
+}
+
+.social-phase-card p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.social-phase-card strong {
+  color: var(--text);
+  line-height: 1.5;
+}
+
 .quote-card {
   display: flex;
   flex-direction: column;
@@ -632,6 +1098,23 @@ p {
 .feature-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 18px;
+}
+
+.home-explore-section {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.compact-heading {
+  margin-bottom: 0;
+}
+
+.compact-heading p:last-child {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.65;
 }
 
 .feature-card {
@@ -1311,11 +1794,298 @@ legend {
   line-height: 1.6;
 }
 
+.analytics-dashboard {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.legacy-report-section {
+  display: none !important;
+}
+
+.weekly-report-tabs,
+.plan-adherence-actions,
+.sizzle-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.weekly-report-tabs button,
+.plan-adherence-actions button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 900;
+  padding: 9px 12px;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.weekly-report-tabs button.active,
+.weekly-report-tabs button:hover,
+.plan-adherence-actions button.active,
+.plan-adherence-actions button:hover {
+  border-color: var(--primary);
+  background: rgba(255, 69, 0, 0.16);
+  color: var(--text);
+}
+
+.unified-summary-card {
+  display: grid;
+  gap: 12px;
+}
+
+.recommended-action-card,
+.home-secondary-content {
+  margin-top: 16px;
+}
+
+.home-secondary-content {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+  padding: 14px;
+}
+
+.home-secondary-content summary {
+  color: var(--secondary);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.home-secondary-content > section {
+  margin-top: 16px;
+}
+
+.plan-history-card {
+  padding: 18px;
+}
+
+.sizzle-action-row {
+  margin-top: 12px;
+}
+
+.analytics-top,
+.report-history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.analytics-top h3,
+.report-history-heading h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.analytics-top p,
+.report-history-heading p,
+.analytics-muted {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.analytics-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 190px;
+  padding: 18px;
+}
+
+.analytics-card.wide {
+  grid-column: span 2;
+}
+
+.analytics-card.highlight {
+  border-color: rgba(255, 69, 0, 0.55);
+  background: linear-gradient(160deg, rgba(255, 69, 0, 0.13), rgba(26, 26, 26, 0.96));
+}
+
+.analytics-label {
+  color: var(--secondary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.analytics-card strong {
+  color: var(--text);
+  font-size: clamp(1.75rem, 4vw, 2.65rem);
+  line-height: 1;
+}
+
+.analytics-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.score-track,
+.mini-energy-track {
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.score-track {
+  height: 9px;
+}
+
+.score-fill,
+.mini-energy-track div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+.energy-type-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 58px;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+}
+
+.energy-type-row strong {
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.mini-energy-track {
+  height: 8px;
+}
+
+.analytics-summary-card {
+  border-left: 4px solid var(--primary);
+  padding: 22px;
+}
+
+.analytics-summary-card p {
+  margin: 12px 0 0;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+.timing-dashboard {
+  margin-top: 28px;
+}
+
+.timing-impact-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.timing-impact-list span {
+  border: 1px solid rgba(255, 140, 0, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  padding: 10px;
+}
+
+.timing-impact-list strong {
+  color: var(--secondary);
+  font-size: 0.95rem;
+}
+
+.recommendation-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.recommendation-list span {
+  border: 1px solid rgba(255, 140, 0, 0.36);
+  border-radius: 999px;
+  background: rgba(255, 69, 0, 0.12);
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 8px 10px;
+}
+
+.report-history-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.report-history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.report-history-item {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  padding: 12px;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.report-history-item:hover,
+.report-history-item.latest {
+  border-color: var(--primary);
+  background: rgba(255, 69, 0, 0.1);
+}
+
+.report-history-item span {
+  color: var(--secondary);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.report-history-item strong {
+  color: var(--text);
+}
+
+.report-history-item p {
+  overflow: hidden;
+  display: -webkit-box;
+  margin: 0;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 .sizzle-section {
   display: grid;
   gap: 16px;
   margin-top: 18px;
   padding: 22px;
+}
+
+.standalone-sizzle {
+  min-height: min(620px, calc(100vh - 240px));
+  align-content: start;
+}
+
+.standalone-sizzle .sizzle-messages {
+  max-height: min(480px, calc(100vh - 390px));
 }
 
 .sizzle-header {
@@ -1712,6 +2482,68 @@ legend {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.memory-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--secondary);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.memory-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.memory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.memory-list {
+  display: grid;
+  gap: 10px;
+}
+
+.memory-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface2);
+  padding: 12px;
+}
+
+.memory-item span {
+  display: inline-block;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  background: rgba(255, 69, 0, 0.12);
+  color: var(--secondary);
+  font-size: 0.74rem;
+  font-weight: 900;
+  padding: 5px 8px;
+  text-transform: uppercase;
+}
+
+.memory-item p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.memory-item small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-secondary);
+  line-height: 1.45;
 }
 
 .theme-pill {
@@ -2148,17 +2980,49 @@ body.theme-ocean .theme-pill.active {
 
 @media (max-width: 820px) {
   .hero-grid,
+  .daily-pulse,
   .feature-grid,
   .summary-grid,
   .facts-grid,
+  .analytics-grid,
   .explore-grid,
   .form-row,
   .profile-grid,
   .settings-grid,
   .tip-grid,
+  .social-plan-grid,
   .visual-card-grid,
   .visual-card-grid.three-up {
     grid-template-columns: 1fr;
+  }
+
+  .quick-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .learning-strip {
+    grid-auto-columns: minmax(235px, 82%);
+  }
+
+  .analytics-card.wide {
+    grid-column: auto;
+  }
+
+  .timing-impact-list {
+    grid-template-columns: 1fr;
+  }
+
+  .wellbeing-inline,
+  .wellbeing-time-row,
+  .wellbeing-grid,
+  .habit-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-top,
+  .report-history-heading {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .journey-preview {
@@ -2181,6 +3045,26 @@ body.theme-ocean .theme-pill.active {
   .feature-card,
   .quote-card {
     padding: 18px;
+  }
+
+  .daily-pulse,
+  .home-insight-card,
+  .home-coach-card,
+  .cuisine-spotlight,
+  .community-story-card {
+    padding: 16px;
+  }
+
+  .pulse-stats,
+  .quick-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-action-button {
+    min-height: 72px;
+    grid-template-columns: auto 1fr;
+    justify-content: start;
+    padding: 0 16px;
   }
 
   .entry-top,

@@ -12,6 +12,7 @@ const MEAL_PLAN_KEY = "fuelflow_meal_plan";
 const PLAN_SELECTIONS_KEY = "fuelflow_plan_selections";
 const GROCERY_CHECKS_KEY = "fuelflow_grocery_checks";
 const WEIGHT_HISTORY_KEY = "fuelflow_weight_history";
+const HABIT_TYPE_KEY = "fuelflow_habit_quick_type";
 const DEFAULT_MEALS_PER_DAY = 4;
 
 const quotes = [
@@ -222,6 +223,18 @@ const homeMotivation = document.querySelector("#homeMotivation");
 const streakText = document.querySelector("#streakText");
 const dailyQuoteText = document.querySelector("#dailyQuoteText");
 const dailyMoodCheckIn = document.querySelector("#dailyMoodCheckIn");
+const recommendedActionCard = document.querySelector("#recommendedActionCard");
+const dailyWellbeingCard = document.querySelector("#dailyWellbeingCard");
+const habitQuickLogCard = document.querySelector("#habitQuickLogCard");
+const socialPlannerCard = document.querySelector("#socialPlannerCard");
+const homeMoodText = document.querySelector("#homeMoodText");
+const homeEnergyText = document.querySelector("#homeEnergyText");
+const homeFocusText = document.querySelector("#homeFocusText");
+const todayInsightCard = document.querySelector("#todayInsightCard");
+const homeLearningCards = document.querySelector("#homeLearningCards");
+const cuisineSpotlight = document.querySelector("#cuisineSpotlight");
+const communityStoryCard = document.querySelector("#communityStoryCard");
+const quickSizzleCheckIn = document.querySelector("#quickSizzleCheckIn");
 const journeyCard = document.querySelector("#journeyCard");
 const homeProgress = document.querySelector("#homeProgress");
 const macroProgressList = document.querySelector("#macroProgressList");
@@ -246,6 +259,61 @@ const insightsLoading = document.querySelector("#insightsLoading");
 const insightsResult = document.querySelector("#insightsResult");
 const insightText = document.querySelector("#insightText");
 const factsGrid = document.querySelector("#factsGrid");
+const generateUnifiedReportButton = document.querySelector("#generateUnifiedReport");
+const refreshUnifiedHistoryButton = document.querySelector("#refreshUnifiedHistory");
+const unifiedReportEmpty = document.querySelector("#unifiedReportEmpty");
+const unifiedReportLoading = document.querySelector("#unifiedReportLoading");
+const unifiedReportContent = document.querySelector("#unifiedReportContent");
+const unifiedReportFocus = document.querySelector("#unifiedReportFocus");
+const unifiedReportSummary = document.querySelector("#unifiedReportSummary");
+const unifiedReportActions = document.querySelector("#unifiedReportActions");
+const unifiedReportSectionGrid = document.querySelector("#unifiedReportSectionGrid");
+const unifiedReportHistory = document.querySelector("#unifiedReportHistory");
+const generateAnalyticsReportButton = document.querySelector("#generateAnalyticsReport");
+const refreshAnalyticsHistoryButton = document.querySelector("#refreshAnalyticsHistory");
+const analyticsEmpty = document.querySelector("#analyticsEmpty");
+const analyticsLoading = document.querySelector("#analyticsLoading");
+const analyticsContent = document.querySelector("#analyticsContent");
+const analyticsMetricGrid = document.querySelector("#analyticsMetricGrid");
+const analyticsSummaryText = document.querySelector("#analyticsSummaryText");
+const analyticsRecommendations = document.querySelector("#analyticsRecommendations");
+const analyticsReportHistory = document.querySelector("#analyticsReportHistory");
+const generateTimingReportButton = document.querySelector("#generateTimingReport");
+const refreshTimingHistoryButton = document.querySelector("#refreshTimingHistory");
+const timingEmpty = document.querySelector("#timingEmpty");
+const timingLoading = document.querySelector("#timingLoading");
+const timingContent = document.querySelector("#timingContent");
+const timingMetricGrid = document.querySelector("#timingMetricGrid");
+const timingSummaryText = document.querySelector("#timingSummaryText");
+const timingSuggestions = document.querySelector("#timingSuggestions");
+const timingReportHistory = document.querySelector("#timingReportHistory");
+const generateRecoveryReportButton = document.querySelector("#generateRecoveryReport");
+const refreshRecoveryHistoryButton = document.querySelector("#refreshRecoveryHistory");
+const recoveryEmpty = document.querySelector("#recoveryEmpty");
+const recoveryLoading = document.querySelector("#recoveryLoading");
+const recoveryContent = document.querySelector("#recoveryContent");
+const recoveryMetricGrid = document.querySelector("#recoveryMetricGrid");
+const recoverySummaryText = document.querySelector("#recoverySummaryText");
+const recoverySuggestions = document.querySelector("#recoverySuggestions");
+const recoveryReportHistory = document.querySelector("#recoveryReportHistory");
+const generateHabitReportButton = document.querySelector("#generateHabitReport");
+const refreshHabitHistoryButton = document.querySelector("#refreshHabitHistory");
+const habitEmpty = document.querySelector("#habitEmpty");
+const habitLoading = document.querySelector("#habitLoading");
+const habitContent = document.querySelector("#habitContent");
+const habitMetricGrid = document.querySelector("#habitMetricGrid");
+const habitSummaryText = document.querySelector("#habitSummaryText");
+const habitSuggestions = document.querySelector("#habitSuggestions");
+const habitReportHistory = document.querySelector("#habitReportHistory");
+const generateSocialReportButton = document.querySelector("#generateSocialReport");
+const refreshSocialHistoryButton = document.querySelector("#refreshSocialHistory");
+const socialEmpty = document.querySelector("#socialEmpty");
+const socialLoading = document.querySelector("#socialLoading");
+const socialContent = document.querySelector("#socialContent");
+const socialMetricGrid = document.querySelector("#socialMetricGrid");
+const socialSummaryText = document.querySelector("#socialSummaryText");
+const socialSuggestions = document.querySelector("#socialSuggestions");
+const socialReportHistory = document.querySelector("#socialReportHistory");
 const sizzleMessages = document.querySelector("#sizzleMessages");
 const sizzleForm = document.querySelector("#sizzleForm");
 const sizzleInput = document.querySelector("#sizzleInput");
@@ -263,6 +331,7 @@ const planLoading = document.querySelector("#planLoading");
 const planLoadingMessage = document.querySelector("#planLoadingMessage");
 const generateMealPlanButton = document.querySelector("#generateMealPlanButton");
 const settingsProfile = document.querySelector("#settingsProfile");
+const sizzleMemorySettings = document.querySelector("#sizzleMemorySettings");
 const themeFiery = document.querySelector("#themeFiery");
 const themeOcean = document.querySelector("#themeOcean");
 const logoutConfirmMessage = document.querySelector("#logoutConfirmMessage");
@@ -290,6 +359,16 @@ let selectedMoods = {
 };
 
 let logsCache = [];
+let wellbeingCache = {
+  daily_checkins: [],
+  sleep_logs: [],
+  recovery_logs: [],
+};
+let habitEventsCache = [];
+let planAdherenceCache = [];
+let mealPlanHistoryCache = [];
+let activeUnifiedReport = null;
+let activeWeeklySection = "overview";
 let logoutArmed = false;
 let onboardingMode = "full";
 let viewingArchivedChat = false;
@@ -324,11 +403,15 @@ function clearAuth() {
   localStorage.removeItem(EMAIL_KEY);
   localStorage.removeItem(SIZZLE_KEY);
   logsCache = [];
+  wellbeingCache = { daily_checkins: [], sleep_logs: [], recovery_logs: [] };
+  habitEventsCache = [];
 }
 
 function clearAllLocalData() {
   localStorage.clear();
   logsCache = [];
+  wellbeingCache = { daily_checkins: [], sleep_logs: [], recovery_logs: [] };
+  habitEventsCache = [];
 }
 
 async function apiFetch(path, options = {}) {
@@ -417,6 +500,53 @@ async function loadLogsFromServer() {
   logsCache = data.logs || [];
 }
 
+async function saveWellbeingCheckIn(payload) {
+  const response = await apiFetch("/api/wellbeing/checkin", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || "Could not save your check-in yet.");
+  }
+  wellbeingCache = await response.json();
+  return wellbeingCache;
+}
+
+async function loadWellbeingFromServer(days = 30) {
+  if (!getToken()) return;
+  const response = await apiFetch(`/api/wellbeing/checkins?days=${days}`);
+  if (!response.ok) {
+    wellbeingCache = { daily_checkins: [], sleep_logs: [], recovery_logs: [] };
+    return;
+  }
+  wellbeingCache = await response.json();
+}
+
+async function saveHabitEvent(payload) {
+  const response = await apiFetch("/api/habits/event", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || "Could not save that event yet.");
+  }
+  await loadHabitEventsFromServer();
+  return response.json();
+}
+
+async function loadHabitEventsFromServer(days = 30) {
+  if (!getToken()) return;
+  const response = await apiFetch(`/api/habits/events?days=${days}`);
+  if (!response.ok) {
+    habitEventsCache = [];
+    return;
+  }
+  const data = await response.json();
+  habitEventsCache = data.events || [];
+}
+
 function readMealPlan() {
   try {
     return JSON.parse(localStorage.getItem(MEAL_PLAN_KEY));
@@ -427,6 +557,87 @@ function readMealPlan() {
 
 function writeMealPlan(plan) {
   localStorage.setItem(MEAL_PLAN_KEY, JSON.stringify(plan));
+}
+
+async function loadLatestMealPlanFromServer() {
+  if (!getToken()) return null;
+  const response = await apiFetch("/api/plan/latest");
+  if (!response.ok) return null;
+  const data = await response.json();
+  if (data.plan) {
+    writeMealPlan(data.plan);
+    return data.plan;
+  }
+  return null;
+}
+
+async function loadMealPlanHistory() {
+  if (!getToken()) return [];
+  const response = await apiFetch("/api/plan/history");
+  if (!response.ok) {
+    mealPlanHistoryCache = [];
+    return [];
+  }
+  const data = await response.json();
+  mealPlanHistoryCache = data.plans || [];
+  return mealPlanHistoryCache;
+}
+
+async function loadPlanAdherence(planId = null) {
+  if (!getToken()) return [];
+  const query = planId ? `?plan_id=${encodeURIComponent(planId)}&days=90` : "?days=90";
+  const response = await apiFetch(`/api/plan/adherence${query}`);
+  if (!response.ok) {
+    planAdherenceCache = [];
+    return [];
+  }
+  const data = await response.json();
+  planAdherenceCache = data.records || [];
+  return planAdherenceCache;
+}
+
+function planAdherenceKey(plan, day, mealIndex) {
+  return [
+    plan?._server_id || "",
+    plan?._created_at || "",
+    day || "",
+    mealIndex,
+  ].join("|");
+}
+
+function getAdherenceForMeal(plan, day, mealIndex) {
+  const key = planAdherenceKey(plan, day, mealIndex);
+  return planAdherenceCache.find((record) => {
+    return planAdherenceKey(
+      { _server_id: record.plan_id, _created_at: record.plan_created_at },
+      record.day,
+      record.meal_index,
+    ) === key;
+  });
+}
+
+async function markPlanMealStatus(plan, day, mealIndex, meal, status) {
+  const response = await apiFetch("/api/plan/adherence", {
+    method: "POST",
+    body: JSON.stringify({
+      plan_id: plan?._server_id || null,
+      plan_created_at: plan?._created_at || "",
+      day,
+      meal_index: mealIndex,
+      meal_name: meal?.name || "",
+      meal_type: meal?.meal_type || "",
+      status,
+      notes: status === "swapped" ? "User marked this meal as swapped." : "",
+    }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || "Could not update plan status.");
+  }
+  const data = await response.json();
+  planAdherenceCache = data.records || planAdherenceCache;
+  renderMealPlan(plan);
+  return data;
 }
 
 function writePlanSelections() {
@@ -473,10 +684,19 @@ function writeGroceryChecks(checks) {
 
 async function savePlanToServer(plan) {
   if (!getToken()) return;
-  await apiFetch("/api/plan/save", {
+  const response = await apiFetch("/api/plan/save", {
     method: "POST",
     body: JSON.stringify({ plan_data: plan }),
   });
+  if (response.ok) {
+    const data = await response.json().catch(() => ({}));
+    if (data.plan_id) {
+      plan._server_id = data.plan_id;
+      plan._created_at = data.created_at || plan._created_at || new Date().toISOString();
+      writeMealPlan(plan);
+    }
+    await loadMealPlanHistory();
+  }
 }
 
 function calculateDailyCalories(profile) {
@@ -579,11 +799,17 @@ function switchView(viewName) {
 
   if (viewName === "insights") {
     updateInsightsState();
+    loadUnifiedReportHistory();
+  }
+
+  if (viewName === "sizzle") {
+    loadSizzleHistoryFromServer().then(() => renderSizzleMessages());
     renderSizzleMessages();
   }
 
   if (viewName === "settings") {
     renderSettings();
+    loadSizzleMemories();
   }
 
   if (viewName === "plan") {
@@ -680,7 +906,9 @@ function updateStreakDisplay() {
     streakText.textContent = `🔥 ${streak} day streak — keep it burning`;
   }
 
-  dailyQuoteText.textContent = getDailyQuote();
+  if (readUser()) {
+    renderHomeCoachMotivation(readUser());
+  }
 }
 
 function readDailyMoodData() {
@@ -713,6 +941,368 @@ async function saveDailyMood(mood) {
     await writeLogs(logs);
   }
   dailyMoodCheckIn.classList.add("hidden-soft");
+  renderHomePersonalization();
+}
+
+function getWellbeingRecord(collection, date = getTodayKey()) {
+  return (wellbeingCache?.[collection] || []).find((item) => {
+    return item.checkin_date === date || item.sleep_date === date || item.log_date === date;
+  }) || {};
+}
+
+function getTodayWellbeing() {
+  return {
+    daily: getWellbeingRecord("daily_checkins"),
+    sleep: getWellbeingRecord("sleep_logs"),
+    recovery: getWellbeingRecord("recovery_logs"),
+  };
+}
+
+function sliderValue(value, fallback = 5) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : fallback;
+}
+
+function renderWellbeingSlider(name, label, value, low, high) {
+  const safeValue = sliderValue(value);
+  return `
+    <label class="wellbeing-slider">
+      <span>${escapeHtml(label)} <strong data-wellbeing-value="${escapeHtml(name)}">${safeValue}/10</strong></span>
+      <input class="wellbeing-range" name="${escapeHtml(name)}" type="range" min="1" max="10" value="${safeValue}" data-value-target="${escapeHtml(name)}">
+      <small>${escapeHtml(low)} · ${escapeHtml(high)}</small>
+    </label>
+  `;
+}
+
+function renderDailyWellbeingCard() {
+  if (!dailyWellbeingCard) return;
+  const { daily, sleep, recovery } = getTodayWellbeing();
+  const completed = Boolean(daily.id || sleep.id || recovery.id);
+  const sleepHours = sleep.duration_minutes ? (Number(sleep.duration_minutes) / 60).toFixed(1) : "";
+  const selectedMood = daily.mood || "🙂";
+  const moodOptions = ["😔", "😐", "🙂", "😊", "🔥"];
+
+  dailyWellbeingCard.innerHTML = `
+    <div class="home-card-heading">
+      <div>
+        <p class="eyebrow flame">Daily wellbeing check-in</p>
+        <h3>${completed ? "Today's check-in is saved" : "Thirty seconds for tomorrow-you"}</h3>
+      </div>
+      <span>${completed ? "Saved" : "New"}</span>
+    </div>
+    <form id="wellbeingCheckInForm" class="wellbeing-form">
+      <div class="wellbeing-question">
+        <span>How did you sleep?</span>
+        <div class="wellbeing-inline">
+          <label>Hours <input name="sleepHours" type="number" min="0" max="14" step="0.25" value="${escapeHtml(sleepHours)}" placeholder="7.5"></label>
+          <label>Quality <input name="sleep_quality" type="range" min="1" max="10" value="${sliderValue(sleep.quality)}" class="wellbeing-range" data-value-target="sleep_quality"></label>
+          <strong data-wellbeing-value="sleep_quality">${sliderValue(sleep.quality)}/10</strong>
+        </div>
+      </div>
+      <div class="wellbeing-time-row">
+        <label>Bedtime <input name="bedtime" type="time" value="${escapeHtml(sleep.bedtime || "")}"></label>
+        <label>Wake time <input name="wake_time" type="time" value="${escapeHtml(sleep.wake_time || "")}"></label>
+        <label>Wake-ups <input name="interruptions" type="number" min="0" max="10" value="${escapeHtml(sleep.interruptions ?? 0)}"></label>
+      </div>
+      <div class="daily-mood-pills wellbeing-moods" aria-label="Wellbeing mood">
+        ${moodOptions.map((mood) => `
+          <button class="${selectedMood === mood ? "active" : ""}" type="button" data-wellbeing-mood="${escapeHtml(mood)}">${escapeHtml(mood)}</button>
+        `).join("")}
+      </div>
+      <input type="hidden" name="mood" value="${escapeHtml(selectedMood)}">
+      <div class="wellbeing-grid">
+        ${renderWellbeingSlider("energy", "How is your energy today?", daily.energy, "Low", "Strong")}
+        ${renderWellbeingSlider("stress", "How stressed are you?", daily.stress, "Calm", "High")}
+        ${renderWellbeingSlider("cravings", "Any cravings today?", daily.cravings, "Quiet", "Loud")}
+        ${renderWellbeingSlider("readiness", "How recovered do you feel?", recovery.readiness, "Heavy", "Ready")}
+      </div>
+      <details class="wellbeing-more">
+        <summary>Optional recovery details</summary>
+        <div class="wellbeing-grid">
+          ${renderWellbeingSlider("soreness", "Soreness", recovery.soreness, "Fresh", "Sore")}
+          ${renderWellbeingSlider("fatigue", "Fatigue", recovery.fatigue, "Light", "Heavy")}
+          ${renderWellbeingSlider("hydration", "Hydration", recovery.hydration, "Low", "Great")}
+        </div>
+        <label class="wellbeing-note">Notes <textarea name="notes" rows="2" placeholder="Anything your body is telling you today?">${escapeHtml(daily.notes || recovery.notes || "")}</textarea></label>
+      </details>
+      <button class="gradient-button compact" type="submit">${completed ? "Update check-in" : "Save check-in"}</button>
+      <p class="analytics-muted">Supportive signal only. No pressure, no diagnosis.</p>
+    </form>
+  `;
+}
+
+async function submitWellbeingCheckIn(form) {
+  const formData = new FormData(form);
+  const sleepHours = Number(formData.get("sleepHours") || 0);
+  const payload = {
+    checkin_date: getTodayKey(),
+    sleep_date: getTodayKey(),
+    mood: formData.get("mood") || "🙂",
+    energy: Number(formData.get("energy") || 5),
+    stress: Number(formData.get("stress") || 5),
+    cravings: Number(formData.get("cravings") || 5),
+    notes: formData.get("notes")?.trim() || "",
+    bedtime: formData.get("bedtime") || "",
+    wake_time: formData.get("wake_time") || "",
+    duration_minutes: Math.round(Math.max(0, sleepHours) * 60),
+    sleep_quality: Number(formData.get("sleep_quality") || 5),
+    interruptions: Number(formData.get("interruptions") || 0),
+    sleep_notes: formData.get("notes")?.trim() || "",
+    soreness: Number(formData.get("soreness") || 5),
+    fatigue: Number(formData.get("fatigue") || 5),
+    readiness: Number(formData.get("readiness") || 5),
+    hydration: Number(formData.get("hydration") || 5),
+    recovery_notes: formData.get("notes")?.trim() || "",
+  };
+  await saveWellbeingCheckIn(payload);
+  renderHomePersonalization();
+  updateInsightsState();
+  showToast("Check-in saved. Tiny signal, big awareness.");
+}
+
+const habitTypeConfig = {
+  smoking: {
+    label: "Smoking",
+    icon: "🚬",
+    quantityLabel: "Amount",
+    quantityPlaceholder: "1",
+    intensityLabel: "Craving intensity",
+    contextLabel: "Context",
+    contextPlaceholder: "After work, with friends...",
+    notesPlaceholder: "Anything useful to remember?",
+    triggers: ["Stress", "After meal", "Social", "Bored", "Alcohol", "Work break"],
+    moods: ["😔", "😐", "🙂", "😤", "😴"],
+  },
+  craving: {
+    label: "Craving",
+    icon: "⚡",
+    quantityLabel: "Craving type",
+    quantityPlaceholder: "Sweet, salty, nicotine...",
+    intensityLabel: "Intensity",
+    contextLabel: "Context",
+    contextPlaceholder: "Evening, studying, commute...",
+    notesPlaceholder: "What would support you right now?",
+    triggers: ["Stress", "Low sleep", "Long gap", "Evening", "Social", "Emotion"],
+    moods: ["😔", "😐", "🙂", "😤", "😴"],
+  },
+  alcohol: {
+    label: "Alcohol",
+    icon: "🍺",
+    quantityLabel: "Drinks",
+    quantityPlaceholder: "1",
+    intensityLabel: "Pull/intensity",
+    contextLabel: "Drink type",
+    contextPlaceholder: "Beer, wine, cocktail...",
+    notesPlaceholder: "Plan for tomorrow-you?",
+    triggers: ["Social", "Weekend", "Stress", "Celebration", "Dinner out", "Bored"],
+    moods: ["😊", "😐", "😔", "🔥", "😴"],
+  },
+};
+
+function selectedHabitType() {
+  return localStorage.getItem(HABIT_TYPE_KEY) || "craving";
+}
+
+function renderHabitQuickLog() {
+  if (!habitQuickLogCard) return;
+  const type = selectedHabitType();
+  const config = habitTypeConfig[type] || habitTypeConfig.craving;
+  const todayEvents = habitEventsCache.filter((event) => dateKey(event.timestamp) === getTodayKey());
+  habitQuickLogCard.innerHTML = `
+    <div class="home-card-heading">
+      <div>
+        <p class="eyebrow flame">Quick habit log</p>
+        <h3>Notice the pattern, then choose your next move</h3>
+      </div>
+      <span>${todayEvents.length} today</span>
+    </div>
+    <form id="habitQuickLogForm" class="habit-form" data-habit-type="${escapeHtml(type)}">
+      <div class="habit-type-pills">
+        ${Object.entries(habitTypeConfig).map(([key, item]) => `
+          <button class="${key === type ? "active" : ""}" type="button" data-habit-type-option="${escapeHtml(key)}">${escapeHtml(item.icon)} ${escapeHtml(item.label)}</button>
+        `).join("")}
+      </div>
+      <div class="habit-form-grid">
+        <label>
+          ${escapeHtml(config.quantityLabel)}
+          <input name="quantity" type="${type === "craving" ? "text" : "number"}" min="0" step="0.5" placeholder="${escapeHtml(config.quantityPlaceholder)}">
+        </label>
+        <label>
+          ${escapeHtml(config.intensityLabel)} <strong data-habit-intensity-value>5/10</strong>
+          <input class="habit-intensity-range" name="intensity" type="range" min="1" max="10" value="5">
+        </label>
+      </div>
+      <div class="habit-trigger-row">
+        ${config.triggers.map((trigger, index) => `
+          <button class="${index === 0 ? "active" : ""}" type="button" data-habit-trigger="${escapeHtml(trigger)}">${escapeHtml(trigger)}</button>
+        `).join("")}
+      </div>
+      <input type="hidden" name="trigger" value="${escapeHtml(config.triggers[0])}">
+      <div class="habit-form-grid">
+        <label>
+          ${escapeHtml(config.contextLabel)}
+          <input name="context" type="text" placeholder="${escapeHtml(config.contextPlaceholder)}">
+        </label>
+        <label>
+          Mood
+          <select name="mood">
+            ${config.moods.map((mood) => `<option>${escapeHtml(mood)}</option>`).join("")}
+          </select>
+        </label>
+      </div>
+      <label>
+        Notes
+        <input name="notes" type="text" placeholder="${escapeHtml(config.notesPlaceholder)}">
+      </label>
+      <button class="gradient-button compact" type="submit">Log without judgment</button>
+      <p class="analytics-muted">This is data, not a verdict. Better decisions start with seeing the pattern.</p>
+    </form>
+  `;
+}
+
+async function submitHabitQuickLog(form) {
+  const formData = new FormData(form);
+  const type = form.dataset.habitType || "craving";
+  const rawQuantity = formData.get("quantity");
+  const numericQuantity = Number(rawQuantity);
+  const payload = {
+    event_type: type,
+    timestamp: new Date().toISOString(),
+    quantity: Number.isFinite(numericQuantity) ? numericQuantity : 1,
+    intensity: Number(formData.get("intensity") || 5),
+    trigger: formData.get("trigger") || "Not specified",
+    context: type === "craving" ? String(rawQuantity || formData.get("context") || "").trim() : formData.get("context") || "",
+    mood: formData.get("mood") || "",
+    notes: formData.get("notes") || "",
+  };
+  if (type === "alcohol" && !payload.context) {
+    payload.context = "Drink";
+  }
+  await saveHabitEvent(payload);
+  renderHabitQuickLog();
+  updateInsightsState();
+  showToast("Logged. Awareness is a win.");
+}
+
+function renderSocialPlanner(plan = null) {
+  if (!socialPlannerCard) return;
+  socialPlannerCard.innerHTML = `
+    <div class="home-card-heading">
+      <div>
+        <p class="eyebrow flame">Drink smarter & social eating</p>
+        <h3>Planning a social moment?</h3>
+      </div>
+      <span>Flexible</span>
+    </div>
+    <form id="socialPlannerForm" class="habit-form social-form">
+      <div class="habit-form-grid">
+        <label>
+          Event
+          <select name="event_type">
+            <option>party tonight</option>
+            <option>wedding</option>
+            <option>vacation</option>
+            <option>clubbing</option>
+            <option>dinner outing</option>
+            <option>drinks with friends</option>
+          </select>
+        </label>
+        <label>
+          Drink
+          <select name="drink_type">
+            <option value="beer">Beer</option>
+            <option value="wine">Wine</option>
+            <option value="whiskey">Whiskey</option>
+            <option value="vodka">Vodka</option>
+            <option value="gin">Gin</option>
+            <option value="rum">Rum</option>
+            <option value="cocktails">Cocktails</option>
+          </select>
+        </label>
+      </div>
+      <div class="habit-form-grid">
+        <label>
+          Planned drinks
+          <input name="planned_drinks" type="number" min="0" max="20" step="0.5" value="2">
+        </label>
+        <label>
+          Context
+          <input name="context" type="text" placeholder="Dinner, dancing, match night...">
+        </label>
+      </div>
+      <button class="gradient-button compact" type="submit">Build my plan</button>
+      <p class="analytics-muted">Enjoy the moment. FuelFlow helps you plan, adjust, and recover.</p>
+    </form>
+    <div id="socialPlanResult" class="${plan ? "social-plan-result" : "hidden-soft"}">
+      ${plan ? renderSocialPlanResult(plan) : ""}
+    </div>
+  `;
+}
+
+function renderSocialPlanResult(plan) {
+  const drink = plan.selected_drink || {};
+  const sections = [
+    ["Before", plan.before_event || []],
+    ["During", plan.during_event || []],
+    ["After", plan.after_event || []],
+  ];
+  return `
+    <article class="drink-reference-strip">
+      <span>${escapeHtml(drink.label || "Drink")}</span>
+      <strong>${escapeHtml(plan.estimated_calorie_impact ?? 0)} kcal planned</strong>
+      <small>${escapeHtml(drink.alcohol_content || "ABV varies")} Â· ${escapeHtml(drink.goal_compatibility_score ?? 0)}/100 alignment</small>
+    </article>
+    <div class="social-plan-grid">
+      ${sections.map(([title, items]) => `
+        <article class="social-phase-card">
+          <h4>${escapeHtml(title)}</h4>
+          ${(items || []).slice(0, 4).map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
+        </article>
+      `).join("")}
+    </div>
+    <article class="social-phase-card">
+      <h4>Smart adjustments</h4>
+      ${(plan.smart_meal_adjustments || []).map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
+      <strong>${escapeHtml(plan.supportive_note || "One social moment does not define your progress.")}</strong>
+    </article>
+    <article class="social-phase-card">
+      <h4>Lower-calorie swaps</h4>
+      ${(plan.alternatives?.lower_calorie || []).slice(0, 3).map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
+      <h4>Goal-friendly options</h4>
+      ${(plan.alternatives?.goal_friendly || []).slice(0, 2).map((item) => `<p>${escapeHtml(item)}</p>`).join("")}
+    </article>
+  `;
+}
+
+async function submitSocialPlanner(form) {
+  const formData = new FormData(form);
+  const button = form.querySelector("button[type='submit']");
+  button.disabled = true;
+  try {
+    const response = await apiFetch("/api/social/plan", {
+      method: "POST",
+      body: JSON.stringify({
+        event_type: formData.get("event_type"),
+        drink_type: formData.get("drink_type"),
+        planned_drinks: Number(formData.get("planned_drinks") || 0),
+        context: formData.get("context") || "",
+        user_profile: readUser() || {},
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "Could not build your plan yet.");
+    }
+    const plan = await response.json();
+    const result = socialPlannerCard.querySelector("#socialPlanResult");
+    result.classList.remove("hidden-soft");
+    result.innerHTML = renderSocialPlanResult(plan);
+    showToast("Social plan ready. Enjoy it with intention.");
+  } catch (error) {
+    showToast(error.message || "Social planner paused. Try again.");
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function getMoodTrend(logs) {
@@ -728,24 +1318,282 @@ function getMoodTrend(logs) {
   return "A steady day is taking shape";
 }
 
+function getTodaysLogs() {
+  return readLogs()
+    .filter((log) => isToday(log.timestamp))
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+}
+
+function getRecentLogs(days = 7) {
+  const start = new Date();
+  start.setDate(start.getDate() - (days - 1));
+  start.setHours(0, 0, 0, 0);
+  return readLogs()
+    .filter((log) => new Date(log.timestamp) >= start)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+}
+
+function averageEnergy(logs) {
+  const values = logs
+    .map((log) => Number(log.energy))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+}
+
+function getHomeMoodLabel() {
+  const dailyMood = readDailyMoodData()[getTodayKey()]?.mood;
+  if (dailyMood) return dailyMood;
+  const wellbeingMood = getWellbeingRecord("daily_checkins")?.mood;
+  if (wellbeingMood) return wellbeingMood;
+  const latest = [...getTodaysLogs()].reverse().find((log) => log.moodAfter?.emoji || log.moodAfter?.label);
+  if (latest?.moodAfter?.emoji) {
+    return `${latest.moodAfter.emoji} ${latest.moodAfter.label || ""}`.trim();
+  }
+  return "Check in when ready";
+}
+
+function getHomeFocus(user, todaysLogs, recentLogs) {
+  const goal = String(user?.goal || "").toLowerCase();
+  const todayEnergy = averageEnergy(todaysLogs);
+  const alcoholToday = todaysLogs.some((log) => log.alcohol);
+  const lateRecent = recentLogs.some((log) => {
+    const hour = new Date(log.timestamp).getHours();
+    return hour >= 22 || hour < 4;
+  });
+
+  if (!todaysLogs.length) return "Log one honest meal";
+  if (alcoholToday) return "Hydrate and steady your next meal";
+  if (todayEnergy && todayEnergy < 6) return "Choose steady energy";
+  if (goal.includes("gain")) return "Consistent protein intake";
+  if (goal.includes("lose")) return "Simple meals, steady rhythm";
+  if (goal.includes("energy")) return "Protect meal timing";
+  if (lateRecent) return "Plan your evening snack";
+  return "Keep the rhythm going";
+}
+
+function getHomeInsight(user, todaysLogs, recentLogs) {
+  if (!recentLogs.length) {
+    return {
+      title: "Start with one useful signal",
+      text: "Log your next meal with mood and energy. One honest entry gives FuelFlow something real to reflect back to you.",
+      tag: "First step",
+    };
+  }
+
+  const moodImproved = recentLogs.filter((log) => {
+    const before = log.moodBefore?.label;
+    const after = log.moodAfter?.label;
+    return before && after && before !== after && after !== "Stressed" && after !== "Angry";
+  }).length;
+  const avgEnergy = averageEnergy(recentLogs);
+  const alcoholLogs = recentLogs.filter((log) => log.alcohol).length;
+  const lateLogs = recentLogs.filter((log) => {
+    const hour = new Date(log.timestamp).getHours();
+    return hour >= 22 || hour < 4;
+  }).length;
+  const loggedDays = new Set(recentLogs.map((log) => dateKey(log.timestamp))).size;
+
+  if (alcoholLogs) {
+    return {
+      title: "Alcohol is a recovery signal",
+      text: `${alcoholLogs} recent log${alcoholLogs > 1 ? "s included" : " included"} alcohol. No judgment here: pair the next day with water, protein, and an easier meal rhythm.`,
+      tag: "Recovery",
+    };
+  }
+  if (lateLogs) {
+    return {
+      title: "Your evenings are worth planning",
+      text: `${lateLogs} recent meal${lateLogs > 1 ? "s were" : " was"} logged late. A planned evening snack may support energy better than waiting until you're drained.`,
+      tag: "Timing",
+    };
+  }
+  if (moodImproved >= Math.ceil(recentLogs.length / 3)) {
+    return {
+      title: "Food is supporting your mood",
+      text: "Several recent meals ended with a better emotional state. Notice what those meals had in common: timing, comfort, protein, or simply eating before you were depleted.",
+      tag: "Mood",
+    };
+  }
+  if (avgEnergy >= 7) {
+    return {
+      title: "Your energy base looks strong",
+      text: `Your recent average energy is ${avgEnergy.toFixed(1)}/10. Keep repeating the meal patterns that make your day feel steadier.`,
+      tag: "Energy",
+    };
+  }
+  return {
+    title: "Consistency is becoming visible",
+    text: `You logged meals on ${loggedDays} day${loggedDays === 1 ? "" : "s"} recently. That awareness is the foundation FuelFlow uses to guide your next move.`,
+    tag: "Consistency",
+  };
+}
+
+function getHomeMotivationText(user, streak, todaysLogs, recentLogs) {
+  const goal = user?.goal || "your goal";
+  if (!todaysLogs.length) {
+    return `${user?.name || "You"}, today does not need to be perfect. Start with one meal, one mood check, and one honest note. That is how ${goal.toLowerCase()} becomes something you practice, not something you chase.`;
+  }
+  if (streak >= 30) {
+    return `${streak} days of showing up is not luck. This is an identity now: someone who pays attention, adjusts, and keeps becoming stronger with food.`;
+  }
+  if (streak >= 7) {
+    return `${streak} days in, and the pattern is clear: you keep coming back. Protect that rhythm today with one steady choice that supports ${goal.toLowerCase()}.`;
+  }
+  if (recentLogs.length >= 5) {
+    return "You are building useful evidence about yourself. Keep the bar simple today: eat, notice, log, and let the pattern teach you.";
+  }
+  return "Momentum is built in small honest reps. You have already started today; now make the next choice a little easier for tomorrow-you.";
+}
+
+function renderDailyPulse(user) {
+  const todaysLogs = getTodaysLogs();
+  const recentLogs = getRecentLogs();
+  const streak = calculateStreak(readLogs());
+  const hasLoggedToday = todaysLogs.length > 0;
+  const energy = averageEnergy(todaysLogs);
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  homeHeading.textContent = `${greeting} ${user?.name ? user.name : ""} 🔥`.replace("  ", " ");
+  homeSubheading.textContent = hasLoggedToday
+    ? "Here is your food, mood, and energy pulse for today."
+    : "Let's create one useful signal today. No pressure, just awareness.";
+  homeMotivation.classList.remove("hidden-soft");
+  streakText.textContent = hasLoggedToday ? `Day ${Math.max(streak, 1)} streak` : "Start today's streak 🔥";
+  homeMoodText.textContent = getHomeMoodLabel();
+  homeEnergyText.textContent = energy ? `${energy.toFixed(1)}/10 average` : "No meals yet";
+  homeFocusText.textContent = getHomeFocus(user, todaysLogs, recentLogs);
+}
+
+function renderHomeInsight(user) {
+  const insight = getHomeInsight(user, getTodaysLogs(), getRecentLogs());
+  todayInsightCard.innerHTML = `
+    <div class="home-card-heading">
+      <div>
+        <p class="eyebrow flame">Today's Insight</p>
+        <h3>${escapeHtml(insight.title)}</h3>
+      </div>
+      <span>${escapeHtml(insight.tag)}</span>
+    </div>
+    <p>${escapeHtml(insight.text)}</p>
+  `;
+}
+
+function renderRecommendedAction(user) {
+  if (!recommendedActionCard) return;
+  const todaysLogs = getTodaysLogs();
+  const wellbeing = getTodayWellbeing();
+  const hasCheckIn = Boolean(wellbeing.daily.id || wellbeing.sleep.id || wellbeing.recovery.id);
+  let title = "Log one honest meal";
+  let text = "Start with one useful signal: what you ate, how you felt, and your energy afterward.";
+  let button = `<button class="gradient-button compact" type="button" data-nav-target="log">Log Meal</button>`;
+  if (!hasCheckIn) {
+    title = "Do your 30-second check-in";
+    text = "Sleep, energy, stress, and cravings help FuelFlow coach the rest of your day with more care.";
+    button = `<button class="gradient-button compact sizzle-context-button" type="button" data-sizzle-prompt="Give me one small daily focus based on my goal and wellbeing today.">Ask Sizzle for today's focus</button>`;
+  } else if (todaysLogs.length) {
+    title = "Ask Sizzle what to do next";
+    text = `You've created signals today. Let Sizzle turn them into one practical next move for ${escapeHtml(user?.goal || "your goal")}.`;
+    button = `<button class="gradient-button compact sizzle-context-button" type="button" data-sizzle-prompt="Based on my logs and check-in today, what is the one thing I should do next?">What Should I Do Next?</button>`;
+  }
+  recommendedActionCard.innerHTML = `
+    <div class="home-card-heading">
+      <div>
+        <p class="eyebrow flame">Recommended action</p>
+        <h3>${escapeHtml(title)}</h3>
+      </div>
+      <span>Today</span>
+    </div>
+    <p>${text}</p>
+    <div class="sizzle-action-row">${button}</div>
+  `;
+}
+
+function renderHomeCoachMotivation(user) {
+  const streak = calculateStreak(readLogs());
+  dailyQuoteText.textContent = getHomeMotivationText(user, streak, getTodaysLogs(), getRecentLogs());
+}
+
+function renderHomeLearning() {
+  const learningItems = exploreItems.filter((item) => !item.highlight).slice(0, 4);
+  homeLearningCards.innerHTML = learningItems.map((item, index) => `
+    <article class="learning-card">
+      <span>${escapeHtml(item.icon)}</span>
+      <p class="eyebrow flame">${index === 0 ? "Today's Article" : "Nutrition Education"}</p>
+      <h3>${escapeHtml(item.title)}</h3>
+      <p>${escapeHtml(item.description)}</p>
+      <strong>${escapeHtml(item.benefit || "A small lesson for real life eating.")}</strong>
+    </article>
+  `).join("");
+}
+
+function renderCuisineSpotlight() {
+  const cuisineItems = exploreItems.filter((item) => {
+    const title = item.title.toLowerCase();
+    return !item.highlight && !title.includes("budget") && !title.includes("athlete") && !title.includes("drinking");
+  });
+  const item = cuisineItems[Math.floor(Date.now() / 86400000) % cuisineItems.length] || exploreItems[1];
+  cuisineSpotlight.innerHTML = `
+    <div class="home-card-heading">
+      <div>
+        <p class="eyebrow flame">Global Cuisine Spotlight</p>
+        <h3>${escapeHtml(item.title)}</h3>
+      </div>
+      <span>${escapeHtml(item.icon)}</span>
+    </div>
+    <p>${escapeHtml(item.description)}</p>
+    <div class="spotlight-list">
+      ${(item.details || []).slice(0, 3).map((detail) => `<span>${escapeHtml(detail)}</span>`).join("")}
+    </div>
+    <p class="spotlight-lesson">${escapeHtml(item.benefit || "Nutrition lesson: simple, satisfying meals are easier to repeat.")}</p>
+  `;
+}
+
+function renderCommunityStory() {
+  const supportItem = exploreItems.find((item) => item.highlight);
+  const stories = supportItem?.stories || [];
+  const story = stories[Math.floor(Date.now() / 86400000) % Math.max(stories.length, 1)] || {};
+  communityStoryCard.innerHTML = `
+    <div class="home-card-heading">
+      <div>
+        <p class="eyebrow flame">Community Story</p>
+        <h3>${escapeHtml(story.name || "A FuelFlow member")}</h3>
+      </div>
+      <span>💛</span>
+    </div>
+    <p>"${escapeHtml(story.text || "Small, kind habits can change how food feels day by day.")}"</p>
+    <small>${escapeHtml(supportItem?.note || "Stories are illustrative and represent common experiences.")}</small>
+  `;
+}
+
 function renderHomePersonalization() {
   const user = readUser();
   if (!user) {
-    homeHeading.textContent = "Food is fuel. Feelings matter.";
-    homeSubheading.textContent = "Track what you eat and how it makes you feel. No shame. No harsh rules. Just clarity.";
+    homeHeading.textContent = "Good morning 🔥";
+    homeSubheading.textContent = "Your supportive check-in for food, mood, energy, and momentum.";
     homeMotivation.classList.add("hidden-soft");
     dailyMoodCheckIn.classList.add("hidden-soft");
+    recommendedActionCard.innerHTML = "";
+    dailyWellbeingCard.innerHTML = "";
+    habitQuickLogCard.innerHTML = "";
+    socialPlannerCard.innerHTML = "";
     homeProgress.classList.add("hidden-soft");
     journeyCard.classList.add("hidden-soft");
     profileCard.classList.add("hidden-soft");
     return;
   }
 
-  homeHeading.textContent = `Hey ${user.name}! 🔥`;
-  homeSubheading.textContent = getTimeGreeting();
-  homeMotivation.classList.remove("hidden-soft");
-  updateStreakDisplay();
+  renderDailyPulse(user);
   renderDailyMoodCheckIn();
+  renderRecommendedAction(user);
+  renderDailyWellbeingCard();
+  renderHabitQuickLog();
+  renderSocialPlanner();
+  renderHomeInsight(user);
+  renderHomeCoachMotivation(user);
+  renderHomeLearning();
+  renderCuisineSpotlight();
+  renderCommunityStory();
   renderJourneyCard();
   renderHomeProgress();
   renderProfileCard();
@@ -1222,12 +2070,884 @@ async function updateLog(logId, form) {
   renderHomeProgress();
 }
 
+function formatMetricValue(value, fallback = "0") {
+  return value === undefined || value === null || Number.isNaN(value) ? fallback : String(value);
+}
+
+function renderScoreBar(score) {
+  const safeScore = Math.max(0, Math.min(100, Number(score || 0)));
+  return `
+    <div class="score-track" aria-label="Score ${safeScore} out of 100">
+      <div class="score-fill" style="width: ${safeScore}%"></div>
+    </div>
+  `;
+}
+
+function renderEnergyRows(rows = []) {
+  if (!rows.length) {
+    return `<p class="analytics-muted">No energy scores by meal type yet.</p>`;
+  }
+  return rows.map((row) => {
+    const energy = Number(row.average_energy || 0);
+    return `
+      <div class="energy-type-row">
+        <span>${escapeHtml(row.meal_type)}</span>
+        <div class="mini-energy-track"><div style="width: ${Math.max(0, Math.min(100, energy * 10))}%"></div></div>
+        <strong>${energy.toFixed(1)}/10</strong>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderAnalyticsReport(report) {
+  if (!report?.metrics) return;
+  const metrics = report.metrics;
+  analyticsContent.classList.remove("hidden-soft");
+  analyticsEmpty.classList.add("hidden-soft");
+
+  const mood = metrics.mood_uplift || {};
+  const consistency = metrics.meal_consistency || {};
+  const alcohol = metrics.alcohol_impact || {};
+  const lateNight = metrics.late_night_eating || {};
+  const goal = metrics.goal_alignment || {};
+
+  analyticsMetricGrid.innerHTML = `
+    <article class="card analytics-card highlight">
+      <span class="analytics-label">Mood uplift</span>
+      <strong>${formatMetricValue(mood.percentage)}%</strong>
+      <p>${formatMetricValue(mood.sample_size)} meals had mood data. ${formatMetricValue(mood.same_or_better_percentage)}% stayed steady or improved.</p>
+      ${renderScoreBar(mood.percentage)}
+    </article>
+    <article class="card analytics-card wide">
+      <span class="analytics-label">Average energy by meal type</span>
+      ${renderEnergyRows(metrics.energy_by_meal_type || [])}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Alcohol impact</span>
+      <strong>${formatMetricValue(alcohol.energy_delta, "0")} pts</strong>
+      <p>${formatMetricValue(alcohol.alcohol_logs)} alcohol logs, ${formatMetricValue(alcohol.total_drinks)} drinks. Energy with alcohol: ${formatMetricValue(alcohol.average_energy_with_alcohol)}/10 vs ${formatMetricValue(alcohol.average_energy_without_alcohol)}/10 without.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Meal consistency</span>
+      <strong>${formatMetricValue(consistency.score)}/100</strong>
+      <p>${formatMetricValue(consistency.days_logged)} of ${formatMetricValue(consistency.days_analyzed, "7")} days logged, averaging ${formatMetricValue(consistency.meals_per_active_day)} meals on active days.</p>
+      ${renderScoreBar(consistency.score)}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Late-night eating</span>
+      <strong>${formatMetricValue(lateNight.count)}</strong>
+      <p>${formatMetricValue(lateNight.percentage)}% of logs happened between ${escapeHtml(lateNight.threshold || "10 PM to 4 AM")}.</p>
+    </article>
+    <article class="card analytics-card highlight">
+      <span class="analytics-label">Goal alignment</span>
+      <strong>${formatMetricValue(goal.score)}/100</strong>
+      <p>${escapeHtml(goal.note || "Keep building consistency around your goal.")}</p>
+      ${renderScoreBar(goal.score)}
+    </article>
+  `;
+
+  analyticsSummaryText.textContent = report.summary || "Your report is ready. Keep logging and FuelFlow will keep sharpening the patterns.";
+  analyticsRecommendations.innerHTML = (report.recommendations || [])
+    .slice(0, 3)
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
+    .join("");
+}
+
+async function loadAnalyticsReportHistory() {
+  if (!analyticsReportHistory || !getToken()) return;
+  analyticsReportHistory.innerHTML = `<p class="analytics-muted">Loading previous reports...</p>`;
+  try {
+    const response = await apiFetch("/api/analytics/reports");
+    if (!response.ok) {
+      throw new Error("Could not load report history.");
+    }
+    const data = await response.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      analyticsReportHistory.innerHTML = `<p class="analytics-muted">No reports yet. Generate your first weekly report above.</p>`;
+      return;
+    }
+    analyticsReportHistory.innerHTML = reports.map((report, index) => {
+      const created = new Date(report.created_at).toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const score = report.metrics?.goal_alignment?.score ?? 0;
+      const activeClass = index === 0 ? " latest" : "";
+      return `
+        <button class="report-history-item${activeClass}" type="button" data-report-index="${index}">
+          <span>${escapeHtml(created)}${index === 0 ? " - latest" : ""}</span>
+          <strong>Goal alignment: ${escapeHtml(score)}/100</strong>
+          <p>${escapeHtml(report.summary || "Saved behavioral report")}</p>
+        </button>
+      `;
+    }).join("");
+    analyticsReportHistory.dataset.reports = JSON.stringify(reports);
+    renderAnalyticsReport(reports[0]);
+  } catch (error) {
+    analyticsReportHistory.innerHTML = `<p class="analytics-muted">${escapeHtml(error.message || "Report history paused.")}</p>`;
+  }
+}
+
+async function generateBehavioralReport() {
+  const logs = readLogs();
+  if (logs.length < 3) {
+    analyticsEmpty.classList.remove("hidden-soft");
+    analyticsContent.classList.add("hidden-soft");
+    showToast("Log at least 3 meals to unlock your behavioral dashboard.");
+    return;
+  }
+
+  generateAnalyticsReportButton.disabled = true;
+  analyticsLoading.classList.remove("hidden-soft");
+  analyticsEmpty.classList.add("hidden-soft");
+
+  try {
+    const response = await apiFetch("/api/analytics/report", {
+      method: "POST",
+      body: JSON.stringify({ days: 7 }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "FuelFlow could not build your report yet.");
+    }
+    const report = await response.json();
+    renderAnalyticsReport(report);
+    await loadAnalyticsReportHistory();
+    showToast("Your behavioral report is ready.");
+  } catch (error) {
+    showToast(error.message || "Something paused. Please try again.");
+  } finally {
+    generateAnalyticsReportButton.disabled = false;
+    analyticsLoading.classList.add("hidden-soft");
+  }
+}
+
+function renderTimingImpactRows(metrics = {}) {
+  const energy = metrics.energy_impact || {};
+  const mood = metrics.mood_impact || {};
+  return `
+    <div class="timing-impact-list">
+      <span>Earlier first meal energy <strong>${formatMetricValue(energy.early_first_meal_avg_energy)}/10</strong></span>
+      <span>Later first meal energy <strong>${formatMetricValue(energy.later_first_meal_avg_energy)}/10</strong></span>
+      <span>Steady gaps mood shift <strong>${formatMetricValue(mood.steady_gap_avg_mood_delta)}</strong></span>
+      <span>Long gaps mood shift <strong>${formatMetricValue(mood.long_gap_avg_mood_delta)}</strong></span>
+    </div>
+  `;
+}
+
+function renderTimingReport(report) {
+  if (!report?.metrics) return;
+  const metrics = report.metrics;
+  const averages = metrics.average_times || {};
+  const gaps = metrics.gaps || {};
+  const consistency = metrics.consistency || {};
+  const lateNight = metrics.late_night || {};
+  const breakfast = metrics.breakfast_consistency || {};
+  const weekSplit = metrics.weekday_vs_weekend || {};
+
+  timingContent.classList.remove("hidden-soft");
+  timingEmpty.classList.add("hidden-soft");
+
+  timingMetricGrid.innerHTML = `
+    <article class="card analytics-card highlight">
+      <span class="analytics-label">Timing consistency</span>
+      <strong>${formatMetricValue(consistency.score)}/100</strong>
+      <p>${formatMetricValue(consistency.days_analyzed, "7")} days analyzed. First meal varies by ~${formatMetricValue(consistency.first_meal_variability_minutes)} min.</p>
+      ${renderScoreBar(consistency.score)}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">First meal rhythm</span>
+      <strong>${escapeHtml(averages.first_meal?.label || "Not enough data")}</strong>
+      <p>Breakfast average: ${escapeHtml(averages.breakfast?.label || "Not enough data")}. Breakfast logged on ${formatMetricValue(breakfast.days_with_breakfast)} days.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Last meal rhythm</span>
+      <strong>${escapeHtml(averages.last_meal?.label || "Not enough data")}</strong>
+      <p>Dinner average: ${escapeHtml(averages.dinner?.label || "Not enough data")}. Last meal varies by ~${formatMetricValue(consistency.last_meal_variability_minutes)} min.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Meal gaps</span>
+      <strong>${formatMetricValue(gaps.average_gap_hours)}h avg</strong>
+      <p>Longest gap: ${formatMetricValue(gaps.longest_gap_hours)}h from ${escapeHtml(gaps.longest_gap_from || "meal")} to ${escapeHtml(gaps.longest_gap_to || "meal")}.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Late-night eating</span>
+      <strong>${formatMetricValue(lateNight.count)}</strong>
+      <p>${formatMetricValue(lateNight.frequency_percentage)}% of logs happened between ${escapeHtml(lateNight.threshold || "10 PM to 4 AM")}.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Weekday vs weekend</span>
+      <strong>${escapeHtml(weekSplit.weekday_first_meal || "Not enough data")}</strong>
+      <p>Weekend first meal: ${escapeHtml(weekSplit.weekend_first_meal || "Not enough data")}. Weekday last meal: ${escapeHtml(weekSplit.weekday_last_meal || "Not enough data")}.</p>
+    </article>
+    <article class="card analytics-card wide">
+      <span class="analytics-label">Timing impact on energy & mood</span>
+      ${renderTimingImpactRows(metrics)}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Breakfast consistency</span>
+      <strong>${formatMetricValue(breakfast.before_9am_percentage)}%</strong>
+      <p>Of breakfast logs happened by 9 AM. This helps Sizzle spot morning energy patterns.</p>
+    </article>
+  `;
+
+  timingSummaryText.textContent = report.summary || "Your timing report is ready. Keep logging and FuelFlow will sharpen the rhythm.";
+  timingSuggestions.innerHTML = (report.suggestions || [])
+    .slice(0, 3)
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
+    .join("");
+}
+
+async function loadTimingReportHistory() {
+  if (!timingReportHistory || !getToken()) return;
+  timingReportHistory.innerHTML = `<p class="analytics-muted">Loading timing reports...</p>`;
+  try {
+    const response = await apiFetch("/api/timing/reports");
+    if (!response.ok) {
+      throw new Error("Could not load timing report history.");
+    }
+    const data = await response.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      timingReportHistory.innerHTML = `<p class="analytics-muted">No timing reports yet. Generate your first rhythm report above.</p>`;
+      return;
+    }
+    timingReportHistory.innerHTML = reports.map((report, index) => {
+      const created = new Date(report.created_at).toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const score = report.metrics?.consistency?.score ?? 0;
+      const firstMeal = report.metrics?.average_times?.first_meal?.label || "Not enough data";
+      const activeClass = index === 0 ? " latest" : "";
+      return `
+        <button class="report-history-item${activeClass}" type="button" data-timing-report-index="${index}">
+          <span>${escapeHtml(created)}${index === 0 ? " - latest" : ""}</span>
+          <strong>Timing consistency: ${escapeHtml(score)}/100</strong>
+          <p>Average first meal: ${escapeHtml(firstMeal)}</p>
+        </button>
+      `;
+    }).join("");
+    timingReportHistory.dataset.reports = JSON.stringify(reports);
+    renderTimingReport(reports[0]);
+  } catch (error) {
+    timingReportHistory.innerHTML = `<p class="analytics-muted">${escapeHtml(error.message || "Timing history paused.")}</p>`;
+  }
+}
+
+async function generateTimingReport() {
+  const logs = readLogs();
+  if (logs.length < 3) {
+    timingEmpty.classList.remove("hidden-soft");
+    timingContent.classList.add("hidden-soft");
+    showToast("Log at least 3 meals to unlock your timing coach.");
+    return;
+  }
+
+  generateTimingReportButton.disabled = true;
+  timingLoading.classList.remove("hidden-soft");
+  timingEmpty.classList.add("hidden-soft");
+
+  try {
+    const response = await apiFetch("/api/timing/report", {
+      method: "POST",
+      body: JSON.stringify({ days: 7 }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "FuelFlow could not build your timing report yet.");
+    }
+    const report = await response.json();
+    renderTimingReport(report);
+    await loadTimingReportHistory();
+    showToast("Your food timing report is ready.");
+  } catch (error) {
+    showToast(error.message || "Something paused. Please try again.");
+  } finally {
+    generateTimingReportButton.disabled = false;
+    timingLoading.classList.add("hidden-soft");
+  }
+}
+
+function renderRecoveryReport(report) {
+  if (!report?.metrics) return;
+  const metrics = report.metrics;
+  const sleep = metrics.sleep || {};
+  const recovery = metrics.recovery || {};
+  const stress = metrics.stress_cravings || {};
+  const assoc = metrics.associations || {};
+
+  recoveryContent.classList.remove("hidden-soft");
+  recoveryEmpty.classList.add("hidden-soft");
+
+  recoveryMetricGrid.innerHTML = `
+    <article class="card analytics-card highlight">
+      <span class="analytics-label">Sleep consistency</span>
+      <strong>${formatMetricValue(sleep.consistency_score)}/100</strong>
+      <p>Average sleep: ${formatMetricValue(sleep.average_duration_hours)}h. Average bedtime: ${escapeHtml(sleep.average_bedtime || "Not enough data")}.</p>
+      ${renderScoreBar(sleep.consistency_score)}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Sleep quality</span>
+      <strong>${formatMetricValue(sleep.average_quality)}/10</strong>
+      <p>Average wake time: ${escapeHtml(sleep.average_wake_time || "Not enough data")}. Sleep debt: ${formatMetricValue(sleep.average_sleep_debt_hours)}h.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Weekday vs weekend</span>
+      <strong>${formatMetricValue(sleep.weekday_average_hours)}h</strong>
+      <p>Weekday sleep vs ${formatMetricValue(sleep.weekend_average_hours)}h on weekends. Quality: ${formatMetricValue(sleep.weekday_quality)}/10 vs ${formatMetricValue(sleep.weekend_quality)}/10.</p>
+    </article>
+    <article class="card analytics-card highlight">
+      <span class="analytics-label">Recovery score</span>
+      <strong>${formatMetricValue(recovery.average_recovery_score)}/100</strong>
+      <p>Readiness ${formatMetricValue(recovery.average_readiness)}/10, hydration ${formatMetricValue(recovery.average_hydration)}/10.</p>
+      ${renderScoreBar(recovery.average_recovery_score)}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Soreness & fatigue</span>
+      <strong>${formatMetricValue(recovery.average_fatigue)}/10</strong>
+      <p>Soreness ${formatMetricValue(recovery.average_soreness)}/10. Fatigue trend: ${escapeHtml(recovery.fatigue_trend?.direction || "steady")}.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Stress & cravings</span>
+      <strong>${formatMetricValue(stress.average_cravings)}/10</strong>
+      <p>Stress ${formatMetricValue(stress.average_stress)}/10. Cravings after poor sleep: ${formatMetricValue(stress.average_cravings_after_poor_sleep)}/10.</p>
+    </article>
+    <article class="card analytics-card wide">
+      <span class="analytics-label">Sleep impact</span>
+      <div class="timing-impact-list">
+        <span>Energy after 7+ hours <strong>${formatMetricValue(assoc.energy_after_7h_sleep)}/10</strong></span>
+        <span>Energy after short sleep <strong>${formatMetricValue(assoc.energy_after_short_sleep)}/10</strong></span>
+        <span>First meal after consistent sleep <strong>${escapeHtml(assoc.first_meal_after_consistent_sleep || "Not enough data")}</strong></span>
+        <span>First meal after inconsistent sleep <strong>${escapeHtml(assoc.first_meal_after_inconsistent_sleep || "Not enough data")}</strong></span>
+      </div>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Check-ins logged</span>
+      <strong>${formatMetricValue(metrics.daily_checkins_count)}</strong>
+      <p>${formatMetricValue(metrics.sleep_logs_count)} sleep logs and ${formatMetricValue(metrics.recovery_logs_count)} recovery logs in this report.</p>
+    </article>
+  `;
+
+  recoverySummaryText.textContent = report.summary || "Your recovery report is ready. Keep checking in and FuelFlow will sharpen the patterns.";
+  recoverySuggestions.innerHTML = (report.suggestions || [])
+    .slice(0, 3)
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
+    .join("");
+}
+
+async function loadRecoveryReportHistory() {
+  if (!recoveryReportHistory || !getToken()) return;
+  recoveryReportHistory.innerHTML = `<p class="analytics-muted">Loading recovery reports...</p>`;
+  try {
+    const response = await apiFetch("/api/recovery/reports");
+    if (!response.ok) {
+      throw new Error("Could not load recovery report history.");
+    }
+    const data = await response.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      recoveryReportHistory.innerHTML = `<p class="analytics-muted">No recovery reports yet. Generate your first wellbeing report above.</p>`;
+      return;
+    }
+    recoveryReportHistory.innerHTML = reports.map((report, index) => {
+      const created = new Date(report.created_at).toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const score = report.metrics?.recovery?.average_recovery_score ?? 0;
+      const sleepHours = report.metrics?.sleep?.average_duration_hours ?? 0;
+      const activeClass = index === 0 ? " latest" : "";
+      return `
+        <button class="report-history-item${activeClass}" type="button" data-recovery-report-index="${index}">
+          <span>${escapeHtml(created)}${index === 0 ? " - latest" : ""}</span>
+          <strong>Recovery: ${escapeHtml(score)}/100 · Sleep: ${escapeHtml(sleepHours)}h</strong>
+          <p>${escapeHtml(report.summary || "Saved sleep and recovery report")}</p>
+        </button>
+      `;
+    }).join("");
+    recoveryReportHistory.dataset.reports = JSON.stringify(reports);
+    renderRecoveryReport(reports[0]);
+  } catch (error) {
+    recoveryReportHistory.innerHTML = `<p class="analytics-muted">${escapeHtml(error.message || "Recovery history paused.")}</p>`;
+  }
+}
+
+async function generateRecoveryReport() {
+  const checkins = wellbeingCache.daily_checkins || [];
+  const sleepLogs = wellbeingCache.sleep_logs || [];
+  const recoveryLogs = wellbeingCache.recovery_logs || [];
+  if (checkins.length + sleepLogs.length + recoveryLogs.length < 1) {
+    recoveryEmpty.classList.remove("hidden-soft");
+    recoveryContent.classList.add("hidden-soft");
+    showToast("Complete one daily check-in to unlock recovery patterns.");
+    return;
+  }
+
+  generateRecoveryReportButton.disabled = true;
+  recoveryLoading.classList.remove("hidden-soft");
+  recoveryEmpty.classList.add("hidden-soft");
+
+  try {
+    const response = await apiFetch("/api/recovery/report", {
+      method: "POST",
+      body: JSON.stringify({ days: 7 }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "FuelFlow could not build your recovery report yet.");
+    }
+    const report = await response.json();
+    renderRecoveryReport(report);
+    await loadRecoveryReportHistory();
+    showToast("Your sleep and recovery report is ready.");
+  } catch (error) {
+    showToast(error.message || "Something paused. Please try again.");
+  } finally {
+    generateRecoveryReportButton.disabled = false;
+    recoveryLoading.classList.add("hidden-soft");
+  }
+}
+
+function renderHabitRows(rows = [], labelKey = "label", empty = "Not enough data yet.") {
+  if (!rows.length) {
+    return `<p class="analytics-muted">${escapeHtml(empty)}</p>`;
+  }
+  return `
+    <div class="habit-mini-list">
+      ${rows.slice(0, 4).map((row) => `
+        <span>${escapeHtml(row[labelKey] || row.window || row.event_type || "Signal")} <strong>${escapeHtml(row.count ?? row.average_intensity ?? 0)}</strong></span>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderHabitReport(report) {
+  if (!report?.metrics) return;
+  const metrics = report.metrics;
+  const stress = metrics.stress_correlation || {};
+  const sleep = metrics.sleep_correlation || {};
+  const timing = metrics.meal_timing_correlation || {};
+  const alcoholEnergy = metrics.alcohol_energy || {};
+  const smokingTrend = metrics.smoking_frequency_trend || {};
+  const alcoholTrend = metrics.alcohol_frequency_trend || {};
+
+  habitContent.classList.remove("hidden-soft");
+  habitEmpty.classList.add("hidden-soft");
+
+  habitMetricGrid.innerHTML = `
+    <article class="card analytics-card highlight">
+      <span class="analytics-label">Events logged</span>
+      <strong>${formatMetricValue(metrics.total_events)}</strong>
+      <p>${formatMetricValue(metrics.days_analyzed, "7")} days analyzed. This is awareness, not a verdict.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Top triggers</span>
+      ${renderHabitRows(metrics.most_common_triggers || [])}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Strongest windows</span>
+      ${renderHabitRows(metrics.strongest_craving_windows || [], "window", "No craving windows yet.")}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Smoking trend</span>
+      <strong>${escapeHtml(smokingTrend.direction || "steady")}</strong>
+      <p>Earlier ${formatMetricValue(smokingTrend.earlier_count)} vs later ${formatMetricValue(smokingTrend.later_count)} events.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Alcohol trend</span>
+      <strong>${escapeHtml(alcoholTrend.direction || "steady")}</strong>
+      <p>Earlier ${formatMetricValue(alcoholTrend.earlier_count)} vs later ${formatMetricValue(alcoholTrend.later_count)} events.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Mood patterns</span>
+      ${renderHabitRows(metrics.mood_correlations || [])}
+    </article>
+    <article class="card analytics-card wide">
+      <span class="analytics-label">Stress, sleep & meal timing</span>
+      <div class="timing-impact-list">
+        <span>High-stress days <strong>${formatMetricValue(stress.events_on_high_stress_days)}</strong></span>
+        <span>Poor-sleep days <strong>${formatMetricValue(sleep.events_after_poor_sleep)}</strong></span>
+        <span>After long meal gaps <strong>${formatMetricValue(timing.events_after_long_meal_gap)}</strong></span>
+        <span>Late-night events <strong>${formatMetricValue(timing.late_night_events)}</strong></span>
+      </div>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Alcohol recovery signal</span>
+      <strong>${formatMetricValue(alcoholEnergy.next_day_energy_after_alcohol)}/10</strong>
+      <p>Next-day energy after alcohol vs ${formatMetricValue(alcoholEnergy.energy_on_alcohol_free_days)}/10 on alcohol-free days.</p>
+    </article>
+  `;
+
+  habitSummaryText.textContent = report.summary || "Your habit report is ready. Keep logging gently and FuelFlow will sharpen the patterns.";
+  habitSuggestions.innerHTML = (report.suggestions || [])
+    .slice(0, 3)
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
+    .join("");
+}
+
+async function loadHabitReportHistory() {
+  if (!habitReportHistory || !getToken()) return;
+  habitReportHistory.innerHTML = `<p class="analytics-muted">Loading habit reports...</p>`;
+  try {
+    const response = await apiFetch("/api/habits/reports");
+    if (!response.ok) {
+      throw new Error("Could not load habit report history.");
+    }
+    const data = await response.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      habitReportHistory.innerHTML = `<p class="analytics-muted">No habit reports yet. Quick-log one event, then generate your first report.</p>`;
+      return;
+    }
+    habitReportHistory.innerHTML = reports.map((report, index) => {
+      const created = new Date(report.created_at).toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const total = report.metrics?.total_events ?? 0;
+      const trigger = report.metrics?.most_common_triggers?.[0]?.label || "No trigger yet";
+      const activeClass = index === 0 ? " latest" : "";
+      return `
+        <button class="report-history-item${activeClass}" type="button" data-habit-report-index="${index}">
+          <span>${escapeHtml(created)}${index === 0 ? " - latest" : ""}</span>
+          <strong>${escapeHtml(total)} events · ${escapeHtml(trigger)}</strong>
+          <p>${escapeHtml(report.summary || "Saved habit intelligence report")}</p>
+        </button>
+      `;
+    }).join("");
+    habitReportHistory.dataset.reports = JSON.stringify(reports);
+    renderHabitReport(reports[0]);
+  } catch (error) {
+    habitReportHistory.innerHTML = `<p class="analytics-muted">${escapeHtml(error.message || "Habit history paused.")}</p>`;
+  }
+}
+
+async function generateHabitReport() {
+  if (!habitEventsCache.length) {
+    habitEmpty.classList.remove("hidden-soft");
+    habitContent.classList.add("hidden-soft");
+    showToast("Quick-log one habit event to unlock habit intelligence.");
+    return;
+  }
+
+  generateHabitReportButton.disabled = true;
+  habitLoading.classList.remove("hidden-soft");
+  habitEmpty.classList.add("hidden-soft");
+
+  try {
+    const response = await apiFetch("/api/habits/report", {
+      method: "POST",
+      body: JSON.stringify({ days: 7 }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "FuelFlow could not build your habit report yet.");
+    }
+    const report = await response.json();
+    renderHabitReport(report);
+    await loadHabitReportHistory();
+    showToast("Your habit intelligence report is ready.");
+  } catch (error) {
+    showToast(error.message || "Something paused. Please try again.");
+  } finally {
+    generateHabitReportButton.disabled = false;
+    habitLoading.classList.add("hidden-soft");
+  }
+}
+
+function renderSocialDrinkBreakdown(rows = []) {
+  if (!rows.length) {
+    return `<p class="analytics-muted">No drink breakdown yet.</p>`;
+  }
+  return `
+    <div class="habit-mini-list">
+      ${rows.slice(0, 4).map((row) => `
+        <span>${escapeHtml(row.label || row.drink_type || "Drink")} <strong>${escapeHtml(row.quantity ?? 0)} · ${escapeHtml(row.estimated_calories ?? 0)} kcal</strong></span>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderSocialReport(report) {
+  if (!report?.metrics) return;
+  const metrics = report.metrics;
+  const recovery = metrics.recovery_quality || {};
+  socialContent.classList.remove("hidden-soft");
+  socialEmpty.classList.add("hidden-soft");
+
+  socialMetricGrid.innerHTML = `
+    <article class="card analytics-card highlight">
+      <span class="analytics-label">Goal alignment</span>
+      <strong>${formatMetricValue(metrics.goal_alignment_score)}/100</strong>
+      <div class="score-track"><div class="score-fill" style="width:${Math.min(100, Number(metrics.goal_alignment_score || 0))}%"></div></div>
+      <p>Flexible, real-life alignment with ${escapeHtml(metrics.goal || "your goal")}.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Drinking frequency</span>
+      <strong>${escapeHtml(metrics.drinking_frequency_label || "0 days")}</strong>
+      <p>Social signals in this report window.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Estimated calorie impact</span>
+      <strong>${formatMetricValue(metrics.estimated_calorie_impact)}</strong>
+      <p>Approximate alcohol calories. Useful for planning, not pressure.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Drink breakdown</span>
+      ${renderSocialDrinkBreakdown(metrics.drink_breakdown || [])}
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Next-day energy</span>
+      <strong>${formatMetricValue(recovery.average_next_day_energy)}/10</strong>
+      <p>Alcohol-free check-in energy: ${formatMetricValue(recovery.alcohol_free_energy)}/10.</p>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Recovery quality</span>
+      <strong>${formatMetricValue(recovery.average_next_day_recovery)}/100</strong>
+      <p>Average next-day recovery after logged drinking signals.</p>
+    </article>
+    <article class="card analytics-card wide">
+      <span class="analytics-label">Improvement opportunities</span>
+      <div class="timing-impact-list">
+        ${(metrics.improvement_opportunities || []).slice(0, 4).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+      </div>
+    </article>
+    <article class="card analytics-card">
+      <span class="analytics-label">Reframe</span>
+      <p>${escapeHtml(metrics.supportive_reframe || "Plan, enjoy, recover, and keep moving.")}</p>
+    </article>
+  `;
+
+  socialSummaryText.textContent = report.summary || "Your social balance report is ready. Use it to plan the next social moment with flexibility.";
+  socialSuggestions.innerHTML = (report.suggestions || [])
+    .slice(0, 3)
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
+    .join("");
+}
+
+async function loadSocialReportHistory() {
+  if (!socialReportHistory || !getToken()) return;
+  socialReportHistory.innerHTML = `<p class="analytics-muted">Loading social balance reports...</p>`;
+  try {
+    const response = await apiFetch("/api/social/reports");
+    if (!response.ok) {
+      throw new Error("Could not load social report history.");
+    }
+    const data = await response.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      socialReportHistory.innerHTML = `<p class="analytics-muted">No social balance reports yet. Generate one when you have alcohol or social signals.</p>`;
+      return;
+    }
+    socialReportHistory.innerHTML = reports.map((report, index) => {
+      const created = new Date(report.created_at).toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const frequency = report.metrics?.drinking_frequency_label || "0 days";
+      const score = report.metrics?.goal_alignment_score ?? 0;
+      const activeClass = index === 0 ? " latest" : "";
+      return `
+        <button class="report-history-item${activeClass}" type="button" data-social-report-index="${index}">
+          <span>${escapeHtml(created)}${index === 0 ? " - latest" : ""}</span>
+          <strong>${escapeHtml(frequency)} · ${escapeHtml(score)}/100 alignment</strong>
+          <p>${escapeHtml(report.summary || "Saved social balance report")}</p>
+        </button>
+      `;
+    }).join("");
+    socialReportHistory.dataset.reports = JSON.stringify(reports);
+    renderSocialReport(reports[0]);
+  } catch (error) {
+    socialReportHistory.innerHTML = `<p class="analytics-muted">${escapeHtml(error.message || "Social report history paused.")}</p>`;
+  }
+}
+
+async function generateSocialReport() {
+  const alcoholEvents = habitEventsCache.filter((event) => event.event_type === "alcohol");
+  const alcoholLogs = readLogs().filter((log) => log.alcohol);
+  if (!alcoholEvents.length && !alcoholLogs.length) {
+    socialEmpty.classList.remove("hidden-soft");
+    socialContent.classList.add("hidden-soft");
+    showToast("Log an alcohol signal or plan a social night to unlock this report.");
+    return;
+  }
+
+  generateSocialReportButton.disabled = true;
+  socialLoading.classList.remove("hidden-soft");
+  socialEmpty.classList.add("hidden-soft");
+
+  try {
+    const response = await apiFetch("/api/social/report", {
+      method: "POST",
+      body: JSON.stringify({ days: 7 }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "FuelFlow could not build your social report yet.");
+    }
+    const report = await response.json();
+    renderSocialReport(report);
+    await loadSocialReportHistory();
+    showToast("Your social balance report is ready.");
+  } catch (error) {
+    showToast(error.message || "Something paused. Please try again.");
+  } finally {
+    generateSocialReportButton.disabled = false;
+    socialLoading.classList.add("hidden-soft");
+  }
+}
+
+function askSizzle(prompt) {
+  switchView("sizzle");
+  sizzleInput.value = prompt;
+  sizzleInput.focus();
+}
+
+function renderUnifiedCards(section, metrics) {
+  const sections = metrics?.sections || {};
+  const overview = metrics?.overview || {};
+  if (section === "food_mood") {
+    const food = sections.food_mood || {};
+    return `
+      <article class="card analytics-card highlight"><span class="analytics-label">Mood uplift</span><strong>${formatMetricValue(food.mood_uplift_percentage)}%</strong><p>Meals followed by a better mood.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Meal consistency</span><strong>${formatMetricValue(food.meal_consistency_score)}/100</strong><p>${formatMetricValue(food.total_logs)} logs this week.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Average energy</span><strong>${formatMetricValue(food.average_energy)}/10</strong><p>Meal-level energy after eating.</p></article>
+    `;
+  }
+  if (section === "timing") {
+    const timing = sections.timing || {};
+    return `
+      <article class="card analytics-card highlight"><span class="analytics-label">Timing consistency</span><strong>${formatMetricValue(timing.consistency_score)}/100</strong><p>Your weekly meal rhythm.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">First meal</span><strong>${escapeHtml(timing.average_first_meal?.label || "No data")}</strong><p>Average first meal time.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Late-night logs</span><strong>${formatMetricValue(timing.late_night?.count)}</strong><p>${escapeHtml(timing.late_night?.threshold || "10 PM to 4 AM")}.</p></article>
+    `;
+  }
+  if (section === "recovery") {
+    const recovery = sections.recovery || {};
+    return `
+      <article class="card analytics-card highlight"><span class="analytics-label">Recovery score</span><strong>${formatMetricValue(recovery.recovery?.average_recovery_score)}/100</strong><p>Readiness, soreness, fatigue, and hydration.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Sleep</span><strong>${formatMetricValue(recovery.sleep?.average_duration_hours)}h</strong><p>Average logged sleep duration.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Stress</span><strong>${formatMetricValue(recovery.daily?.average_stress)}/10</strong><p>Daily check-in average.</p></article>
+    `;
+  }
+  if (section === "habits") {
+    const habits = sections.habits || {};
+    const trigger = habits.most_common_triggers?.[0]?.label || "No trigger yet";
+    return `
+      <article class="card analytics-card highlight"><span class="analytics-label">Quick signals</span><strong>${formatMetricValue(habits.total_events)}</strong><p>Habit events logged this week.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Top trigger</span><strong>${escapeHtml(trigger)}</strong><p>Most common logged trigger.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Late-night signals</span><strong>${formatMetricValue(habits.meal_timing_correlation?.late_night_events)}</strong><p>Patterns worth noticing, not judging.</p></article>
+    `;
+  }
+  if (section === "social") {
+    const social = sections.social || {};
+    return `
+      <article class="card analytics-card highlight"><span class="analytics-label">Social alignment</span><strong>${formatMetricValue(social.goal_alignment_score)}/100</strong><p>Real-life flexibility with your goals.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Drinking frequency</span><strong>${escapeHtml(social.drinking_frequency_label || "0 days")}</strong><p>Logged social drinking signals.</p></article>
+      <article class="card analytics-card"><span class="analytics-label">Calorie impact</span><strong>${formatMetricValue(social.estimated_calorie_impact)}</strong><p>Approximate planning signal.</p></article>
+    `;
+  }
+  return `
+    <article class="card analytics-card highlight"><span class="analytics-label">Weekly score</span><strong>${formatMetricValue(overview.score)}/100</strong><p>One compass across your FuelFlow signals.</p></article>
+    <article class="card analytics-card"><span class="analytics-label">Plan adherence</span><strong>${formatMetricValue(overview.plan_adherence)}%</strong><p>Meals marked eaten or swapped.</p></article>
+    <article class="card analytics-card"><span class="analytics-label">Recovery</span><strong>${formatMetricValue(overview.recovery_score)}/100</strong><p>Sleep and recovery check-in signal.</p></article>
+    <article class="card analytics-card"><span class="analytics-label">Timing</span><strong>${formatMetricValue(overview.timing_consistency)}/100</strong><p>How steady your meal rhythm looked.</p></article>
+    <article class="card analytics-card"><span class="analytics-label">Food consistency</span><strong>${formatMetricValue(overview.meal_consistency)}/100</strong><p>How much useful food data FuelFlow saw.</p></article>
+    <article class="card analytics-card"><span class="analytics-label">Habit signals</span><strong>${formatMetricValue(overview.habit_events)}</strong><p>Quick signals logged without judgment.</p></article>
+  `;
+}
+
+function renderUnifiedReport(report) {
+  if (!report?.metrics) return;
+  activeUnifiedReport = report;
+  unifiedReportContent.classList.remove("hidden-soft");
+  unifiedReportEmpty.classList.add("hidden-soft");
+  unifiedReportFocus.textContent = report.focus ? `Next focus: ${report.focus}` : "Next focus: choose one repeatable action.";
+  unifiedReportSummary.textContent = report.summary || "Your weekly report is ready.";
+  unifiedReportActions.innerHTML = (report.actions || [])
+    .slice(0, 3)
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
+    .join("");
+  document.querySelectorAll("[data-weekly-section]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.weeklySection === activeWeeklySection);
+  });
+  unifiedReportSectionGrid.innerHTML = renderUnifiedCards(activeWeeklySection, report.metrics);
+}
+
+async function loadUnifiedReportHistory() {
+  if (!unifiedReportHistory || !getToken()) return;
+  unifiedReportHistory.innerHTML = `<p class="analytics-muted">Loading weekly reports...</p>`;
+  try {
+    const response = await apiFetch("/api/weekly-report/history");
+    if (!response.ok) throw new Error("Could not load weekly report history.");
+    const data = await response.json();
+    const reports = data.reports || [];
+    if (!reports.length) {
+      unifiedReportHistory.innerHTML = `<p class="analytics-muted">No unified reports yet. Generate your first weekly report above.</p>`;
+      return;
+    }
+    unifiedReportHistory.innerHTML = reports.map((report, index) => {
+      const created = new Date(report.created_at).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+      const score = report.metrics?.overview?.score ?? 0;
+      return `
+        <button class="report-history-item${index === 0 ? " latest" : ""}" type="button" data-unified-report-index="${index}">
+          <span>${escapeHtml(created)}${index === 0 ? " - latest" : ""}</span>
+          <strong>${escapeHtml(score)}/100 weekly score</strong>
+          <p>${escapeHtml(report.summary || "Saved weekly report")}</p>
+        </button>
+      `;
+    }).join("");
+    unifiedReportHistory.dataset.reports = JSON.stringify(reports);
+    renderUnifiedReport(reports[0]);
+  } catch (error) {
+    unifiedReportHistory.innerHTML = `<p class="analytics-muted">${escapeHtml(error.message || "Weekly history paused.")}</p>`;
+  }
+}
+
+async function generateUnifiedReport() {
+  generateUnifiedReportButton.disabled = true;
+  unifiedReportLoading.classList.remove("hidden-soft");
+  unifiedReportEmpty.classList.add("hidden-soft");
+  try {
+    const response = await apiFetch("/api/weekly-report/generate", {
+      method: "POST",
+      body: JSON.stringify({ days: 7 }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.detail || "FuelFlow could not build your weekly report yet.");
+    }
+    const report = await response.json();
+    activeWeeklySection = "overview";
+    renderUnifiedReport(report);
+    await loadUnifiedReportHistory();
+    showToast("Your unified weekly report is ready.");
+  } catch (error) {
+    showToast(error.message || "Something paused. Please try again.");
+  } finally {
+    generateUnifiedReportButton.disabled = false;
+    unifiedReportLoading.classList.add("hidden-soft");
+  }
+}
+
 function updateInsightsState() {
   insightsButton.classList.remove("hidden-soft");
   insightsEmpty.classList.add("hidden-soft");
   if (readLogs().length >= 3) {
     insightsHint.classList.add("hidden-soft");
   }
+  analyticsEmpty.classList.toggle("hidden-soft", readLogs().length >= 3);
+  timingEmpty.classList.toggle("hidden-soft", readLogs().length >= 3);
+  const hasWellbeing = (wellbeingCache.daily_checkins || []).length + (wellbeingCache.sleep_logs || []).length + (wellbeingCache.recovery_logs || []).length > 0;
+  recoveryEmpty.classList.toggle("hidden-soft", hasWellbeing);
+  habitEmpty.classList.toggle("hidden-soft", habitEventsCache.length > 0);
 }
 
 function readSizzleHistory() {
@@ -1239,7 +2959,127 @@ function readSizzleHistory() {
 }
 
 function writeSizzleHistory(history) {
-  localStorage.setItem(SIZZLE_KEY, JSON.stringify(history.slice(-20)));
+  localStorage.setItem(SIZZLE_KEY, JSON.stringify(history.slice(-100)));
+}
+
+async function loadSizzleHistoryFromServer() {
+  if (!getToken()) return;
+  try {
+    const response = await apiFetch("/api/chat/history");
+    if (!response.ok) return;
+    const data = await response.json();
+    const messages = (data.history || []).map((message) => ({
+      role: message.role,
+      content: message.content,
+      timestamp: message.timestamp,
+    }));
+    writeSizzleHistory(messages);
+  } catch {
+    // Local chat cache remains available if server history cannot load.
+  }
+}
+
+async function loadSizzleMemories() {
+  if (!sizzleMemorySettings || !getToken()) return;
+  sizzleMemorySettings.innerHTML = `
+    <div class="settings-section-head">
+      <h3>What Sizzle Remembers</h3>
+      <p>Loading Sizzle's long-term coaching memory...</p>
+    </div>
+  `;
+  try {
+    const response = await apiFetch("/api/memories");
+    if (!response.ok) {
+      throw new Error("Could not load Sizzle memory.");
+    }
+    renderSizzleMemorySettings(await response.json());
+  } catch (error) {
+    sizzleMemorySettings.innerHTML = `
+      <div class="settings-section-head">
+        <h3>What Sizzle Remembers</h3>
+        <p>${escapeHtml(error.message || "Memory controls paused.")}</p>
+      </div>
+    `;
+  }
+}
+
+function renderSizzleMemorySettings(data = {}) {
+  const memories = data.memories || [];
+  const enabled = data.memory_enabled !== false;
+  sizzleMemorySettings.innerHTML = `
+    <div class="settings-section-head">
+      <div>
+        <h3>What Sizzle Remembers</h3>
+        <p>Use memory to make Sizzle a long-term coach across conversations and devices.</p>
+      </div>
+      <label class="memory-toggle">
+        <input id="sizzleMemoryToggle" type="checkbox" ${enabled ? "checked" : ""}>
+        <span>${enabled ? "Memory on" : "Memory off"}</span>
+      </label>
+    </div>
+    <div class="memory-actions">
+      <button id="exportMemoriesButton" class="secondary-button compact" type="button">Export memories</button>
+      <button id="deleteAllMemoriesButton" class="mini-danger" type="button">Delete all</button>
+    </div>
+    <div class="memory-list">
+      ${memories.length ? memories.map((memory) => `
+        <article class="memory-item" data-memory-id="${escapeHtml(memory.id)}">
+          <div>
+            <span>${escapeHtml(memory.memory_type || "memory")}</span>
+            <p>${escapeHtml(memory.memory_text || "")}</p>
+            <small>Confidence: ${Math.round(Number(memory.confidence_score || 0) * 100)}% · Source: ${escapeHtml(memory.source || "chat")}</small>
+          </div>
+          <button class="clear-chat-button delete-memory-button" type="button">Delete</button>
+        </article>
+      `).join("") : `<p class="analytics-muted">No memories yet. When you tell Sizzle durable things about your goals, preferences, challenges, or cravings, they can appear here.</p>`}
+    </div>
+  `;
+  sizzleMemorySettings.dataset.memories = JSON.stringify(memories);
+}
+
+async function updateSizzleMemoryEnabled(enabled) {
+  const response = await apiFetch("/api/memories/settings", {
+    method: "POST",
+    body: JSON.stringify({ enabled }),
+  });
+  if (!response.ok) {
+    throw new Error("Could not update memory setting.");
+  }
+  renderSizzleMemorySettings(await response.json());
+}
+
+async function deleteSizzleMemory(memoryId) {
+  const response = await apiFetch(`/api/memories/${memoryId}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error("Could not delete that memory.");
+  }
+  const data = await response.json();
+  const current = await apiFetch("/api/memories").then((result) => result.json()).catch(() => ({ memory_enabled: true }));
+  renderSizzleMemorySettings({ ...current, memories: data.memories || [] });
+}
+
+async function deleteAllSizzleMemories() {
+  const response = await apiFetch("/api/memories", { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error("Could not delete memories.");
+  }
+  const current = await apiFetch("/api/memories").then((result) => result.json()).catch(() => ({ memory_enabled: true, memories: [] }));
+  renderSizzleMemorySettings(current);
+}
+
+function exportSizzleMemories() {
+  let memories = [];
+  try {
+    memories = JSON.parse(sizzleMemorySettings.dataset.memories || "[]");
+  } catch {
+    memories = [];
+  }
+  const blob = new Blob([JSON.stringify(memories, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "fuelflow_sizzle_memories.json";
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function readChatSessions() {
@@ -1394,7 +3234,11 @@ async function sendSizzleMessage(message) {
       throw new Error(error.detail || "Sizzle paused for a second.");
     }
     const data = await response.json();
-    writeSizzleHistory([...nextHistory, { role: "assistant", content: data.reply || "I am here with you. Ask me one specific thing and we will work through it." }]);
+    if (Array.isArray(data.history)) {
+      writeSizzleHistory(data.history.map((item) => ({ role: item.role, content: item.content, timestamp: item.timestamp })));
+    } else {
+      writeSizzleHistory([...nextHistory, { role: "assistant", content: data.reply || "I am here with you. Ask me one specific thing and we will work through it." }]);
+    }
   } catch (error) {
     writeSizzleHistory([...nextHistory, { role: "assistant", content: error.message || "I hit a pause, but I am still here. Try asking that again in a simpler way." }]);
   }
@@ -1517,6 +3361,13 @@ function renderMealPlan(plan) {
   const alcoholFrequency = getPlanProfile().alcohol_frequency;
   const showAlcohol = alcoholFrequency && alcoholFrequency !== "I don't drink";
   const groceryChecks = readGroceryChecks();
+  const adherenceRecords = planAdherenceCache.filter((record) => {
+    if (plan._server_id) return Number(record.plan_id) === Number(plan._server_id);
+    return record.plan_created_at === plan._created_at;
+  });
+  const adherenceTotal = adherenceRecords.length;
+  const followed = adherenceRecords.filter((record) => ["eaten", "swapped"].includes(record.status)).length;
+  const adherenceRate = adherenceTotal ? Math.round((followed / adherenceTotal) * 100) : 0;
 
   planDisplay.className = "plan-display";
   planDisplay.innerHTML = `
@@ -1537,6 +3388,21 @@ function renderMealPlan(plan) {
         <span class="metric-pill">P ${escapeHtml(summary.protein_g || 0)}g</span>
         <span class="metric-pill">C ${escapeHtml(summary.carbs_g || 0)}g</span>
         <span class="metric-pill">F ${escapeHtml(summary.fat_g || 0)}g</span>
+        <span class="metric-pill">Adherence ${escapeHtml(adherenceRate)}%</span>
+      </div>
+    </section>
+
+    <section class="card plan-history-card">
+      <div class="report-history-heading">
+        <div>
+          <p class="eyebrow flame">Synced plans</p>
+          <h3>Previous meal plans</h3>
+          <p>Restore a saved plan from this device or another login.</p>
+        </div>
+        <button id="refreshPlanHistoryButton" class="clear-chat-button" type="button">Refresh</button>
+      </div>
+      <div id="mealPlanHistoryList" class="report-history-list">
+        ${renderMealPlanHistoryList(plan)}
       </div>
     </section>
 
@@ -1549,7 +3415,7 @@ function renderMealPlan(plan) {
     </nav>
 
     <section class="meal-plan-day">
-      ${(day.meals || []).map((meal, index) => renderPlanMealCard(meal, index)).join("")}
+      ${(day.meals || []).map((meal, index) => renderPlanMealCard(meal, index, plan, day.day)).join("")}
       ${showAlcohol ? `
         <article class="card alcohol-guidance-card">
           <h3>🍺 Alcohol Balance Guide</h3>
@@ -1596,6 +3462,10 @@ function renderMealPlan(plan) {
         `).join("")}
       </div>
       <p>${escapeHtml(plan.adjustment_note || "")}</p>
+      <div class="sizzle-action-row">
+        <button class="clear-chat-button sizzle-context-button" type="button" data-sizzle-prompt="Review my current meal plan and tell me what I should adjust first.">Ask Sizzle About This</button>
+        <button class="clear-chat-button sizzle-context-button" type="button" data-sizzle-prompt="What should I do next to follow this meal plan without making it stressful?">What Should I Do Next?</button>
+      </div>
     </section>
 
     <section class="card weight-check-card">
@@ -1615,11 +3485,31 @@ function renderMealPlan(plan) {
   `;
 }
 
-function renderPlanMealCard(meal, index) {
+function renderMealPlanHistoryList(activePlan) {
+  if (!mealPlanHistoryCache.length) {
+    return `<p class="analytics-muted">No previous server-saved plans yet.</p>`;
+  }
+  return mealPlanHistoryCache.slice(0, 5).map((plan, index) => {
+    const summary = plan.plan_summary || {};
+    const created = plan._created_at ? new Date(plan._created_at).toLocaleDateString([], { month: "short", day: "numeric" }) : "Saved plan";
+    const isActive = activePlan?._server_id && Number(activePlan._server_id) === Number(plan._server_id);
+    return `
+      <button class="report-history-item ${isActive ? "latest" : ""}" type="button" data-restore-plan-index="${index}">
+        <span>${escapeHtml(created)}${isActive ? " - active" : ""}</span>
+        <strong>${escapeHtml(summary.plan_type || "Meal plan")} · ${escapeHtml(summary.daily_calories || 0)} kcal</strong>
+        <p>${escapeHtml(summary.weekly_goal || "Saved FuelFlow meal plan")}</p>
+      </button>
+    `;
+  }).join("");
+}
+
+function renderPlanMealCard(meal, index, plan, dayName) {
   const totalMacros = Math.max(1, Number(meal.protein_g || 0) + Number(meal.carbs_g || 0) + Number(meal.fat_g || 0));
   const proteinWidth = Math.round((Number(meal.protein_g || 0) / totalMacros) * 100);
   const carbsWidth = Math.round((Number(meal.carbs_g || 0) / totalMacros) * 100);
   const fatWidth = Math.max(0, 100 - proteinWidth - carbsWidth);
+  const adherence = getAdherenceForMeal(plan, dayName, index);
+  const status = adherence?.status || "";
   return `
     <article class="card plan-meal-card" data-plan-meal-index="${index}">
       <div class="plan-meal-top">
@@ -1635,6 +3525,13 @@ function renderPlanMealCard(meal, index) {
           <button class="secondary-button compact log-plan-meal" type="button">Log this meal</button>
         </div>
       </div>
+      <div class="plan-adherence-actions">
+        ${["eaten", "swapped", "skipped"].map((item) => `
+          <button class="${status === item ? "active" : ""}" type="button" data-plan-status="${item}">
+            ${escapeHtml(item.charAt(0).toUpperCase() + item.slice(1))}
+          </button>
+        `).join("")}
+      </div>
       <div class="macro-bar" aria-label="Macro proportions">
         <span style="width:${proteinWidth}%"></span>
         <span style="width:${carbsWidth}%"></span>
@@ -1648,6 +3545,10 @@ function renderPlanMealCard(meal, index) {
       </div>
       <p class="plan-meal-description">${escapeHtml(meal.description || "A practical meal built around your plan.")}</p>
       <p class="why-meal">Why this meal? ${escapeHtml(meal.why || "")}</p>
+      <div class="sizzle-action-row">
+        <button class="clear-chat-button sizzle-context-button" type="button" data-sizzle-prompt="Why does ${escapeHtml(meal.name || "this meal")} matter for my goal?">Why Does This Matter?</button>
+        <button class="clear-chat-button sizzle-context-button" type="button" data-sizzle-prompt="I want to swap ${escapeHtml(meal.name || "this meal")}. Suggest a similar option that fits my plan.">Ask Sizzle to Swap</button>
+      </div>
     </article>
   `;
 }
@@ -1685,6 +3586,9 @@ async function generateMealPlan() {
     writeMealPlan(plan);
     localStorage.removeItem(GROCERY_CHECKS_KEY);
     await savePlanToServer(plan);
+    await loadLatestMealPlanFromServer();
+    await loadMealPlanHistory();
+    await loadPlanAdherence(readMealPlan()?._server_id || null);
     selectedPlanDay = 0;
     renderMealPlanView();
     showToast("Your meal plan is ready 🔥");
@@ -2026,6 +3930,12 @@ async function completeAuthenticatedLoad(profile = null) {
     await loadProfileFromServer();
   }
   await loadLogsFromServer();
+  await loadWellbeingFromServer();
+  await loadHabitEventsFromServer();
+  await loadLatestMealPlanFromServer();
+  await loadMealPlanHistory();
+  await loadPlanAdherence(readMealPlan()?._server_id || null);
+  await loadSizzleHistoryFromServer();
   showMainApp();
   renderMoodGroups();
   renderExplore();
@@ -2054,6 +3964,11 @@ async function handleAuthResponse(response, errorEl) {
     await completeAuthenticatedLoad();
   } else {
     await loadLogsFromServer();
+    await loadWellbeingFromServer();
+    await loadHabitEventsFromServer();
+    await loadLatestMealPlanFromServer();
+    await loadMealPlanHistory();
+    await loadPlanAdherence(readMealPlan()?._server_id || null);
     localStorage.removeItem(USER_KEY);
     showMainApp();
     renderMoodGroups();
@@ -2186,6 +4101,12 @@ function bindEvents() {
     button.addEventListener("click", () => switchView(button.dataset.navTarget));
   });
 
+  quickSizzleCheckIn.addEventListener("click", () => {
+    switchView("sizzle");
+    sizzleInput.value = "Give me one small nutrition focus for today based on my goal and recent logs.";
+    sizzleInput.focus();
+  });
+
   document.addEventListener("click", (event) => {
     const moodButton = event.target.closest(".mood-pill");
     if (moodButton && !moodButton.closest(".onboarding-pills")) {
@@ -2206,6 +4127,47 @@ function bindEvents() {
     const dailyMoodButton = event.target.closest("[data-daily-mood]");
     if (dailyMoodButton) {
       saveDailyMood(dailyMoodButton.dataset.dailyMood);
+      return;
+    }
+
+    const sizzleContextButton = event.target.closest("[data-sizzle-prompt]");
+    if (sizzleContextButton) {
+      askSizzle(sizzleContextButton.dataset.sizzlePrompt);
+      return;
+    }
+
+    const dynamicNavButton = event.target.closest("[data-nav-target]");
+    if (dynamicNavButton && !dynamicNavButton.classList.contains("nav-item")) {
+      switchView(dynamicNavButton.dataset.navTarget);
+      return;
+    }
+
+    const wellbeingMoodButton = event.target.closest("[data-wellbeing-mood]");
+    if (wellbeingMoodButton) {
+      const form = wellbeingMoodButton.closest("#wellbeingCheckInForm");
+      if (!form) return;
+      form.querySelectorAll("[data-wellbeing-mood]").forEach((button) => {
+        button.classList.toggle("active", button === wellbeingMoodButton);
+      });
+      form.elements.mood.value = wellbeingMoodButton.dataset.wellbeingMood;
+      return;
+    }
+
+    const habitTypeButton = event.target.closest("[data-habit-type-option]");
+    if (habitTypeButton) {
+      localStorage.setItem(HABIT_TYPE_KEY, habitTypeButton.dataset.habitTypeOption);
+      renderHabitQuickLog();
+      return;
+    }
+
+    const habitTriggerButton = event.target.closest("[data-habit-trigger]");
+    if (habitTriggerButton) {
+      const form = habitTriggerButton.closest("#habitQuickLogForm");
+      if (!form) return;
+      form.querySelectorAll("[data-habit-trigger]").forEach((button) => {
+        button.classList.toggle("active", button === habitTriggerButton);
+      });
+      form.elements.trigger.value = habitTriggerButton.dataset.habitTrigger;
       return;
     }
 
@@ -2268,6 +4230,55 @@ function bindEvents() {
       startOnboarding(2, "goals");
       return;
     }
+
+    const deleteMemoryButton = event.target.closest(".delete-memory-button");
+    if (deleteMemoryButton) {
+      const memoryItem = deleteMemoryButton.closest("[data-memory-id]");
+      if (!memoryItem) return;
+      deleteSizzleMemory(memoryItem.dataset.memoryId)
+        .then(() => showToast("Sizzle memory deleted."))
+        .catch((error) => showToast(error.message || "Could not delete memory."));
+      return;
+    }
+
+    const exportMemoriesButton = event.target.closest("#exportMemoriesButton");
+    if (exportMemoriesButton) {
+      exportSizzleMemories();
+      return;
+    }
+
+    const deleteAllMemoriesButton = event.target.closest("#deleteAllMemoriesButton");
+    if (deleteAllMemoriesButton) {
+      deleteAllSizzleMemories()
+        .then(() => showToast("All Sizzle memories deleted."))
+        .catch((error) => showToast(error.message || "Could not delete memories."));
+    }
+  });
+
+  document.addEventListener("change", (event) => {
+    if (event.target.id === "sizzleMemoryToggle") {
+      updateSizzleMemoryEnabled(event.target.checked)
+        .then(() => showToast(event.target.checked ? "Sizzle memory is on." : "Sizzle memory is off."))
+        .catch((error) => showToast(error.message || "Could not update memory."));
+    }
+  });
+
+  document.addEventListener("input", (event) => {
+    const range = event.target.closest(".wellbeing-range");
+    if (range) {
+      const target = document.querySelector(`[data-wellbeing-value="${range.dataset.valueTarget}"]`);
+      if (target) {
+        target.textContent = `${range.value}/10`;
+      }
+      return;
+    }
+    const habitRange = event.target.closest(".habit-intensity-range");
+    if (habitRange) {
+      const target = habitRange.closest("label")?.querySelector("[data-habit-intensity-value]");
+      if (target) {
+        target.textContent = `${habitRange.value}/10`;
+      }
+    }
   });
 
   energyRange.addEventListener("input", () => {
@@ -2286,6 +4297,26 @@ function bindEvents() {
     renderBodyFatCards();
     renderTargetBodyFatCards();
     updateOnboardingButtons();
+  });
+
+  document.addEventListener("submit", async (event) => {
+    if (!["wellbeingCheckInForm", "habitQuickLogForm", "socialPlannerForm"].includes(event.target.id)) return;
+    event.preventDefault();
+    const button = event.target.querySelector("button[type='submit']");
+    button.disabled = true;
+    try {
+      if (event.target.id === "wellbeingCheckInForm") {
+        await submitWellbeingCheckIn(event.target);
+      } else if (event.target.id === "habitQuickLogForm") {
+        await submitHabitQuickLog(event.target);
+      } else {
+        await submitSocialPlanner(event.target);
+      }
+    } catch (error) {
+      showToast(error.message || "Could not save that signal yet.");
+    } finally {
+      button.disabled = false;
+    }
   });
 
   mealForm.addEventListener("submit", async (event) => {
@@ -2376,6 +4407,25 @@ function bindEvents() {
   });
 
   planDisplay.addEventListener("click", async (event) => {
+    if (event.target.closest("#refreshPlanHistoryButton")) {
+      await loadMealPlanHistory();
+      renderMealPlan(readMealPlan());
+      return;
+    }
+
+    const restoreButton = event.target.closest("[data-restore-plan-index]");
+    if (restoreButton) {
+      const plan = mealPlanHistoryCache[Number(restoreButton.dataset.restorePlanIndex)];
+      if (plan) {
+        selectedPlanDay = 0;
+        writeMealPlan(plan);
+        await loadPlanAdherence(plan._server_id || null);
+        renderMealPlanView();
+        showToast("Meal plan restored.");
+      }
+      return;
+    }
+
     const dayButton = event.target.closest("[data-plan-day]");
     if (dayButton) {
       selectedPlanDay = Number(dayButton.dataset.planDay);
@@ -2401,11 +4451,30 @@ function bindEvents() {
     }
 
     const mealCard = event.target.closest(".plan-meal-card");
+    const statusButton = event.target.closest("[data-plan-status]");
+    if (statusButton && mealCard) {
+      const plan = readMealPlan();
+      const day = plan?.days?.[selectedPlanDay] || {};
+      const mealIndex = Number(mealCard.dataset.planMealIndex);
+      const meal = day.meals?.[mealIndex];
+      if (plan && meal) {
+        try {
+          await markPlanMealStatus(plan, day.day, mealIndex, meal, statusButton.dataset.planStatus);
+          showToast(`Marked ${statusButton.dataset.planStatus}.`);
+        } catch (error) {
+          showToast(error.message || "Could not update meal status.");
+        }
+      }
+      return;
+    }
+
     if (event.target.closest(".log-plan-meal") && mealCard) {
       const plan = readMealPlan();
       const meal = plan?.days?.[selectedPlanDay]?.meals?.[Number(mealCard.dataset.planMealIndex)];
       if (meal) {
         await logPlanMeal(meal);
+        const day = plan?.days?.[selectedPlanDay] || {};
+        await markPlanMealStatus(plan, day.day, Number(mealCard.dataset.planMealIndex), meal, "eaten").catch(() => {});
       }
       return;
     }
@@ -2414,7 +4483,7 @@ function bindEvents() {
       const plan = readMealPlan();
       const meal = plan?.days?.[selectedPlanDay]?.meals?.[Number(mealCard.dataset.planMealIndex)];
       if (meal) {
-        switchView("insights");
+        switchView("sizzle");
         sizzleInput.value = `Give me a detailed recipe for ${meal.name || "this meal"}`;
         sizzleInput.focus();
       }
@@ -2446,6 +4515,119 @@ function bindEvents() {
       event.preventDefault();
       const weightKg = new FormData(event.target).get("weightKg");
       await updateWeightAndRecalculate(weightKg);
+    }
+  });
+
+  generateAnalyticsReportButton.addEventListener("click", generateBehavioralReport);
+
+  refreshAnalyticsHistoryButton.addEventListener("click", loadAnalyticsReportHistory);
+
+  generateUnifiedReportButton.addEventListener("click", generateUnifiedReport);
+
+  refreshUnifiedHistoryButton.addEventListener("click", loadUnifiedReportHistory);
+
+  unifiedReportHistory.addEventListener("click", (event) => {
+    const reportButton = event.target.closest("[data-unified-report-index]");
+    if (!reportButton) return;
+    try {
+      const reports = JSON.parse(unifiedReportHistory.dataset.reports || "[]");
+      const report = reports[Number(reportButton.dataset.unifiedReportIndex)];
+      if (report) renderUnifiedReport(report);
+    } catch {
+      showToast("Could not open that weekly report.");
+    }
+  });
+
+  document.querySelectorAll("[data-weekly-section]").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeWeeklySection = button.dataset.weeklySection;
+      if (activeUnifiedReport) renderUnifiedReport(activeUnifiedReport);
+    });
+  });
+
+  generateTimingReportButton.addEventListener("click", generateTimingReport);
+
+  refreshTimingHistoryButton.addEventListener("click", loadTimingReportHistory);
+
+  generateRecoveryReportButton.addEventListener("click", generateRecoveryReport);
+
+  refreshRecoveryHistoryButton.addEventListener("click", loadRecoveryReportHistory);
+
+  generateHabitReportButton.addEventListener("click", generateHabitReport);
+
+  refreshHabitHistoryButton.addEventListener("click", loadHabitReportHistory);
+
+  generateSocialReportButton.addEventListener("click", generateSocialReport);
+
+  refreshSocialHistoryButton.addEventListener("click", loadSocialReportHistory);
+
+  analyticsReportHistory.addEventListener("click", (event) => {
+    const reportButton = event.target.closest("[data-report-index]");
+    if (!reportButton) return;
+    try {
+      const reports = JSON.parse(analyticsReportHistory.dataset.reports || "[]");
+      const report = reports[Number(reportButton.dataset.reportIndex)];
+      if (report) {
+        renderAnalyticsReport(report);
+      }
+    } catch {
+      showToast("Could not open that report.");
+    }
+  });
+
+  timingReportHistory.addEventListener("click", (event) => {
+    const reportButton = event.target.closest("[data-timing-report-index]");
+    if (!reportButton) return;
+    try {
+      const reports = JSON.parse(timingReportHistory.dataset.reports || "[]");
+      const report = reports[Number(reportButton.dataset.timingReportIndex)];
+      if (report) {
+        renderTimingReport(report);
+      }
+    } catch {
+      showToast("Could not open that timing report.");
+    }
+  });
+
+  recoveryReportHistory.addEventListener("click", (event) => {
+    const reportButton = event.target.closest("[data-recovery-report-index]");
+    if (!reportButton) return;
+    try {
+      const reports = JSON.parse(recoveryReportHistory.dataset.reports || "[]");
+      const report = reports[Number(reportButton.dataset.recoveryReportIndex)];
+      if (report) {
+        renderRecoveryReport(report);
+      }
+    } catch {
+      showToast("Could not open that recovery report.");
+    }
+  });
+
+  habitReportHistory.addEventListener("click", (event) => {
+    const reportButton = event.target.closest("[data-habit-report-index]");
+    if (!reportButton) return;
+    try {
+      const reports = JSON.parse(habitReportHistory.dataset.reports || "[]");
+      const report = reports[Number(reportButton.dataset.habitReportIndex)];
+      if (report) {
+        renderHabitReport(report);
+      }
+    } catch {
+      showToast("Could not open that habit report.");
+    }
+  });
+
+  socialReportHistory.addEventListener("click", (event) => {
+    const reportButton = event.target.closest("[data-social-report-index]");
+    if (!reportButton) return;
+    try {
+      const reports = JSON.parse(socialReportHistory.dataset.reports || "[]");
+      const report = reports[Number(reportButton.dataset.socialReportIndex)];
+      if (report) {
+        renderSocialReport(report);
+      }
+    } catch {
+      showToast("Could not open that social report.");
     }
   });
 
